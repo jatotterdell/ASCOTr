@@ -6,9 +6,6 @@
 \usage{
 create_fulldata_no_daily()
 }
-\arguments{
-\item{dir}{Raw data directory}
-}
 \value{
 Full dataset without daily records
 }

@@ -109,6 +109,20 @@ add_database_corrections <- function(dat) {
 }
 
 
+#' @title add_v5_activation_date
+#' @description
+#' Add site activation data
+#'
+#' @param dat A dataset
+#' @return dat with site data added
+#' @export
+add_v5_activation_date <- function(dat) {
+  act <- site_activation %>%
+    select(country, site, active_domains, active_v3, active_v5)
+  dat %>%
+    left_join(act, by = c("Country" = "country", "Location" = "site"))
+}
+
 #' @title add_d28_corrections
 #' @description
 #' Make corrections to the day 28 dataset
@@ -413,6 +427,7 @@ add_time_to_recovery <- function(dat) {
 #' Format eligibility data
 #' @param el Eligibility data
 #' @returns Formatted data
+#' @importFrom labelled labelled
 #' @export
 format_eligibility_data <- function(el) {
   el %>%
@@ -683,7 +698,6 @@ summarise_daily_data <- function(dd) {
 #' @description
 #' Basically joins all the datasets together, except for the daily records.
 #' Perform additional formatting here, in sub-steps for each raw data table.
-#' @param dir Raw data directory
 #' @returns Full dataset without daily records
 #' @export
 create_fulldata_no_daily <- function() {
@@ -735,7 +749,7 @@ create_fulldata_no_daily <- function() {
 #' @description
 #' Adds daily data to the dataset
 #' @param dat Full dataset from `create_fulldata_no_daily`
-#' @param daily Daily dataset
+#' @export
 create_fulldata_add_daily <- function(dat) {
   dat %>%
     full_join(
@@ -756,10 +770,11 @@ create_fulldata_add_daily <- function(dat) {
 #' @title create_and_save_derived_data
 #' @param dir1 Directory for raw data
 #' @param dir2 Directory for derived data
+#' @export
 create_and_save_derived_data <- function(dir1, dir2) {
   read_all_raw_extracts(dir1)
   all_dat <- create_fulldata_no_daily()
-  all_dat_daily <- create_fulldata_add_daily(all_dat, daily)
+  all_dat_daily <- create_fulldata_add_daily(all_dat)
   save_derived_dataset(dir2, all_dat, "all_data.rds")
   save_derived_dataset(dir2, all_dat_daily, "all_daily_data.rds")
 }

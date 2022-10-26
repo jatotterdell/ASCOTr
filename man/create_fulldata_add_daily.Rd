@@ -8,8 +8,6 @@ create_fulldata_add_daily(dat)
 }
 \arguments{
 \item{dat}{Full dataset from `create_fulldata_no_daily`}
-
-\item{daily}{Daily dataset}
 }
 \description{
 Adds daily data to the dataset

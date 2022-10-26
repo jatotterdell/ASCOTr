@@ -1,0 +1,67 @@
+STATE,Site Code,Health service,Hospital name/address,Domains Active,Site activated on protocol version 3.0 ,Site activated on protocol version 5.0 (Therapeutic AC)
+VIC,ALF,"Alfred Health 
+
+
+",Alfred Health,AC,16-Jul-21,20-Oct-21
+VIC,AUS,Austin Health,"Austin Hospital 
+Studley road Heidelberg VIC 3084",AC,2-Jun-21,06-Dec-21
+VIC,BAL,Ballarat Health Services,"Ballarat Base Hospital
+1 Drummond st N, Ballarat Central VIC 3350",C,16-Mar-21,16-Mar-22
+VIC,BXH,"Eastern Health
+","Box Hill Hospital
+8 Arnold st
+Box Hill VIC 3128",AC,,13-Oct-21
+VIC,RMH,Melbourne Health,"Royal Melbourne Hospital
+300 Grattan st
+Parkville VIC 3050",AC,9-Jul-21,11-Oct-21
+VIC,MMC,Monash Health,"Monash Medical Centre
+246 Clayton road
+Clayton VIC 3168               Dandenong Hospital
+135 David st 
+Dandenong VIC 3175                 Casey Hospital",AC,,12-Oct-21
+VIC,WSH,Western Health,"Sunshine Hospital
+Furlong Rd, St Albans VIC 3021",AC,29-Apr-21,11-Apr-22
+NSW,BLK,Western Sydney Local Health District,"Blacktown Hospital
+18 Blacktown Road, Blacktown, NSW 2148",AC,15-Sep-21,15-Feb-22
+NSW,JHH,Hunter New England Local Health District,"John Hunter Hospital
+Lookout Road, New Lambton Heights, NSW 2305",C,,16-Nov-21
+NSW,LIV,South Western Sydney Local Health District,"Liverpool Hospital
+Elizabeth & Goulburn Street, Liverpool, NSW 2170",AC,07-Jul-21,25-Oct-21
+NSW,STG,South Eastern Sydney Local Health District,"St George Hospital
+Gray Street, Kogarah, NSW 2217",C,21-Jun-21,08-Oct-21
+NSW,SUT,South Eastern Sydney Local Health District,"Sutherland Hospital
+Cnr The Kingsway & Kareena Road, Caringbah NSW 2229",AC,,26-Nov-21
+NSW,WOL,Illawarra Shoalhaven Local Health District,"Wollongong Hospital
+Loftus Street, Wollongong, NSW 2500",AC,02-Jul-21,14-Oct-21
+NSW,WES,Western Sydney Local Health District,"Westmead Hospital
+Cnr Hawkesbury Road & Darcy Road, Westmead, NSW 2145",AC,21-Jan-21,08-Oct-21
+NSW,CAM,South Western Sydney Local Health District,"Campbelltown Hospital 
+Therry Road, Campbelltown, NSW 2560",AC,19-Aug-21,25-Oct-21
+NSW,WWB,Murrumbidgee Local Health District,"Wagga Wagga Base Hospital
+Docker Street, Wagga Wagga, NSW 2650",AC,03-Aug-21,02-Nov-21
+NSW,RNS,Northern Sydney Local Health District,"Royal North Shore Hospital
+Reserve Road, St Leonards, NSW 2065",AC,24-Dec-20,28-Oct-21
+WA,RPH,Royal Perth Hospital,Royal Perth Hospital         Wellington Street Perth WA 6000,AC,29-Apr-21,08-Dec-21
+QLD,RBH,"Metro North Hospital and Health Service, ",Royal Brisbane & Women's,AC,06-Aug-21,08-Oct-21
+QLD,SCU,Sunshine Coast Hospital and Health Service,Sunshine Coast,AC,,27-Oct-21
+QLD,PRC,Metro North Hospital and Health Service,Prince Charles Hospital,AC,06-Aug-21,05-Nov-21
+NZ,MID,Counties Manukau,Middlemore,AC,23-Dec-20,29-Sep-21
+NZ,DUN,Southern,Dunedin,AC,,10-Nov-21
+NZ,NSH,Waitemata,North Shore ,C,30-Aug-21,18-Oct-21
+NZ,PNH,MidCentral,Palmerston North,AC,,21-Oct-21
+NZ,CHR,Canterbury,Christchurch,AC,,10-Nov-21
+Nepal,TUT,Tribhuvan University Teaching Hospital,"Tribhuvan University Teaching Hospital, Institute of Medicine, Maharajgunj, Kathmandu",AC,,11-Oct-21
+Nepal,BHN,Bir Hospital,"National Academy for Medical Sciences, Bir Hospital, Mahaboudha, Kathmandu",AC,,11-Oct-21
+India,LUD,CMC Ludhiana,,C,12-Feb-21,
+India,PUN,"Sterling Multispecialty Hospital, Pune",,C,16-Feb-21,
+India,VEL,"Christian Medical College, Vellore",,C,25-Mar-21,
+India,SAM,"Samishta Hospital & Research Institute, Guntur",,C,07-Apr-21,
+India,JIV,Jivanrekha Multispeciality Hospital,,C,21-Apr-21,
+India,AMH,Aditya Muiltispeciality Hospital,,C,01-Mar-21,
+India,COR,Core Hospital,,C,13-May-21,
+India,SYM,Symbiosis University Hospital,,C,26-May-21,
+India,MAS,Maharaja Agrasen Superspeciality Hospital,,C,29-Jun-21,
+India,APM,Apex Hospital Pvt Ltd,,C,29-Jun-21,
+India,AGN,"Al-Ameen Garib Nawaz General hospital, Ahmedabad",,C,02-Jul-21,
+India,BCM,Believers Church Medical College Hospital,,C,,11-Oct-21
+India,RIM,Rajendra Institute of Medical Sciences,,C,08-Nov-21,
