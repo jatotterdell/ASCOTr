@@ -676,14 +676,17 @@ summarise_daily_data <- function(dd) {
       DD_any_days_no_aspirin = any(DD_AspirinAdministered == "No" | is.na(DD_AspirinAdministered)),
       DD_any_days_no_aspirin_excld1 = any(
         (DD_AspirinAdministered == "No" | is.na(DD_AspirinAdministered)) & (DD_StudyDay > 1 & DD_StudyDay < max(DD_StudyDay)),
-        na.rm = TRUE) | all(is.na(DD_AspirinAdministered)) | all(DD_AspirinAdministered == "No"),
+        na.rm = TRUE
+      ) | all(is.na(DD_AspirinAdministered)) | all(DD_AspirinAdministered == "No"),
       DD_n_aspirin = sum(DD_AspirinAdministered == "Yes", na.rm = TRUE),
       DD_n_aspirin_2toDis =
         sum((DD_AspirinAdministered == "Yes") & (DD_StudyDay > 1),
-            na.rm = TRUE),
+          na.rm = TRUE
+        ),
       DD_n_aspirin_2toDisExcl =
         sum((DD_AspirinAdministered == "Yes") & (DD_StudyDay > 1 & DD_StudyDay < pmin(max(DD_StudyDay), 28)),
-            na.rm = TRUE),
+          na.rm = TRUE
+        ),
       .groups = "drop"
     ) %>%
     mutate(
@@ -701,7 +704,6 @@ summarise_daily_data <- function(dd) {
 #' @returns Full dataset without daily records
 #' @export
 create_fulldata_no_daily <- function() {
-
   eligibility %>%
     left_join(enrolled, by = "StudyPatientID") %>%
     left_join(consent, by = "StudyPatientID") %>%
@@ -711,7 +713,8 @@ create_fulldata_no_daily <- function() {
     left_join(d28, by = "StudyPatientID") %>%
     left_join(
       summarise_daily_data(format_daily_data(daily)),
-      by = "StudyPatientID") %>%
+      by = "StudyPatientID"
+    ) %>%
     # Need database corrections for some formatting, so apply first
     add_database_corrections() %>%
     format_eligibility_data() %>%
@@ -753,7 +756,8 @@ create_fulldata_no_daily <- function() {
 create_fulldata_add_daily <- function(dat) {
   dat %>%
     full_join(
-      daily %>% format_daily_data(), by = "StudyPatientID"
+      daily %>% format_daily_data(),
+      by = "StudyPatientID"
     ) %>%
     mutate(
       ENR_rec = if_else(is.na(ENR_rec), 0, ENR_rec),

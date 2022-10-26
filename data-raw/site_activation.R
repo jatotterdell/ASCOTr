@@ -29,4 +29,4 @@ read_site_activation_file <- function() {
 }
 
 site_activation <- read_site_activation_file()
-usethis::use_data(site_activation, overwrite = TRUE, compress = 'xz')
+usethis::use_data(site_activation, overwrite = TRUE, compress = "xz")
