@@ -742,9 +742,7 @@ create_fulldata_no_daily <- function() {
     add_days_alive_and_free_ventilation() %>%
     add_shortness_of_breath() %>%
     add_breathlessness_scale() %>%
-    add_time_to_recovery() %>%
-    # restrict to randomisations prior to closure of anticoagulation
-    filter(RandDate <= as.Date("2022-04-08") | is.na(RandDate))
+    add_time_to_recovery()
 }
 
 
