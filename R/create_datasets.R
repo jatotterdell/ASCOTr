@@ -21,6 +21,46 @@ add_database_corrections <- function(dat) {
   dat %>%
     mutate(
 
+      # MMC00081
+      # did not consent to participate in the Antiviral Domain but has antiviral
+      # domain-specific data stored in their record.
+      # These antiviral domain responses need to be removed for this participant as we cannot use their data:
+      # Baseline respiratory tract PCR result
+      #   BAS_RespiratoryTestPerformed
+      # Nafamostat
+      #   DD_NafamostatAdministered
+      # Laboratory test results
+      #   DD_Potassium
+      #   DD_Sodium
+      #   DD_ALTLabs
+      #   DD_ASTLabs
+      #   PCR results
+      #
+      #   DD_RespiratorySampleType
+      #   DD_RespiratorySampleResult
+      #   DD_CycleThreshold
+      #   DD_PCRMethod
+      # Major bleeding per ISTH definition
+      #   DD_AdverseEventsToday
+      # Antiviral-domain specific data at discharge
+      #   DIS_ThrombophlebitisIVLine
+      #   DIS_NonMajorBleeding
+      EL_Con_DomainA = case_when(
+        StudyPatientID == "MMC00081" ~ "No",
+        TRUE ~ EL_Con_DomainA
+      ),
+      CON_DomainA = case_when(
+        StudyPatientID == "MMC00081" ~ "No",
+        TRUE ~ CON_DomainA
+      ),
+      BAS_RespiratoryTestPerformed = case_when(
+        StudyPatientID == "MMC00081" ~ NA_character_,
+        TRUE ~ BAS_RespiratoryTestPerformed
+      ),
+      DIS_ThrombophlebitisIVLine = if_else(StudyPatientID == "MMC00081", NA_character_, DIS_ThrombophlebitisIVLine),
+      DIS_NonMajorBleeding = if_else(StudyPatientID == "MMC00081", NA_character_, DIS_NonMajorBleeding),
+
+
       # StudyID SAM00117 was not previously screened
       EL_PrevScreened = case_when(
         StudyPatientID == "SAM00117" ~ "No",
@@ -104,6 +144,12 @@ add_database_corrections <- function(dat) {
         case_when(
           StudyPatientID == "PUN00004" ~ 276,
           TRUE ~ EL_BloodPlateletTestValue
+        ),
+
+      EL_eGFR =
+        case_when(
+          StudyPatientID == "PRC00007" ~ 73,
+          TRUE ~ EL_eGFR
         )
     )
 }
