@@ -120,7 +120,8 @@ get_interim_dates <- function() {
     1, as.Date("2021-07-21"),
     2, as.Date("2021-09-15"),
     3, as.Date("2021-12-01"),
-    4, as.Date("2022-02-22")
+    4, as.Date("2022-02-22"),
+    5, as.Date("2022-05-30")
   )
 }
 
@@ -134,6 +135,7 @@ intervention_strata <- function() {
     as.Date("2021-06-10"), as.Date("2021-09-10"), 2, "Drop C3",
     as.Date("2021-09-11"), as.Date("2021-10-13"), 3, "Add C4",
     as.Date("2021-10-14"), as.Date("2022-04-08"), 4, "Drop C",
+    as.Date("2022-04-09"), as.Date("2022-08-04"), 5, "Drop A"
   )
 }
 
