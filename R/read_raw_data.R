@@ -42,6 +42,13 @@ read_eligibility_file <- function(fn) {
   # The two columns appear to be exact duplicates, so one is removed here
   eligibility <- eligibility %>%
     rename(EL_OralTherapeuticAnticoagAgents = EL_OralTherapeuticAnticoagAgents...38) %>%
+    mutate(
+      EL_OralTherapeuticAnticoagAgents = if_else(
+        is.na(EL_OralTherapeuticAnticoagAgents) & !is.na(EL_OralTherapeuticAnticoagAgents...50),
+        EL_OralTherapeuticAnticoagAgents...50,
+        EL_OralTherapeuticAnticoagAgents
+      )
+    )
     select(-EL_OralTherapeuticAnticoagAgents...50) %>%
     # As requested, exclude ineligible participant
     filter(StudyPatientID != "BLK00001" | is.na(StudyPatientID))
