@@ -7,9 +7,7 @@
 generate_baseline_demographics_table(dat, format = "html")
 }
 \arguments{
-\item{data}{The dataset. assumed to have baseline data included}
-
-\item{closed}{If FALSE, calculate overall only for open report.
+\item{data}{The dataset. assumed to have baseline data included
 If FALSE produce one table per domain.}
 }
 \value{

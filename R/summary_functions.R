@@ -94,7 +94,6 @@ generate_baseline_demographics <- function(dat) {
 #' Generate baseline demographics tables
 #'
 #' @param data The dataset. assumed to have baseline data included
-#' @param closed If FALSE, calculate overall only for open report.
 #' If FALSE produce one table per domain.
 #' @return Either a single table or a list of tables, one for each domain.
 #' @export
