@@ -1,5 +1,6 @@
 # Baseline summary - demographics  ----
 
+
 #' @title generate_baseline_demographics_by
 #' @description
 #' Generate baseline demographics summary by a grouping variable
@@ -48,6 +49,7 @@ generate_baseline_demographics_by <- function(dat, grpvar = NULL) {
   return(tab)
 }
 
+
 #' @title generate_baseline_demographics
 #' @description
 #' Generate baseline demographics summary overall
@@ -88,6 +90,7 @@ generate_baseline_demographics <- function(dat) {
   colnames(overall)[2] <- paste0("Overall<br><br>(n = ", nrow(dat), ")")
   return(overall)
 }
+
 
 #' @title generate_baseline_demographics_table
 #' @description
@@ -166,5 +169,193 @@ generate_baseline_demographics_table <- function(dat, format = "html") {
     outA <- outA %>% pack_rows("Vaccinated<sup>1</sup>", 10, 11, escape = FALSE)
     outC <- outC %>% pack_rows("Vaccinated<sup>1</sup>", 10, 11, escape = FALSE)
   }
+  return(list(A = outA, C = outC))
+}
+
+
+# Baseline summary - co-morbidities  ----
+
+
+#' @title generate_baseline_comorbidities
+#' @description
+#' Generates baseline co-morbidity summary across all participants
+#' @param dat Dataset with baseline variables
+#' @return A tibble giving the summary
+generate_baseline_comorbidities <- function(dat) {
+  basdat <- dat %>%
+    select(
+      BAS_rec,
+      BAS_Comorbidities_None,
+      BAS_ChonicCardiacDisease,
+      BAS_Hypertension,
+      BAS_Obesity,
+      BAS_ChronicLungDisease,
+      BAS_ObsSleepApnoea,
+      BAS_Asthma,
+      BAS_Diabetes,
+      BAS_ChronicKidneyDisease,
+      BAS_Dialysis,
+      BAS_ModSevLiverDisease,
+      BAS_Dementia,
+      BAS_MalignantNeoplasm,
+      BAS_HIVInfection,
+      BAS_IatrogenicImmuno
+    )
+  ovr_missing <- basdat %>%
+    summarise(name = "Missing, n (\\%)", value = sprintf("%i (%3.0f)", sum(BAS_rec == 0), 100 * sum(BAS_rec == 0) / n()))
+  overall <- basdat %>%
+    select(-BAS_rec) %>%
+    summarise_all(., list(`.n` = ~ sum(.x == "Yes", na.rm = T), `.p` = ~ sum(.x == "Yes", na.rm = T) / n())) %>%
+    pivot_longer(everything(), names_to = c("name", "measure"), names_sep = "_\\.") %>%
+    pivot_wider(id_cols = name, names_from = measure, values_from = value) %>%
+    arrange(-n) %>%
+    mutate(value = sprintf("%i (%3.0f)", n, 100 * p)) %>%
+    select(-n, -p) %>%
+    mutate(
+      name = str_replace(name, "BAS_", ""),
+      name = str_replace(name, "_Variable", ""),
+      name = str_replace(name, "_", ""),
+      name = str_replace(name, "ObsS", "ObstructiveS"),
+      name = str_replace(name, "Immuno", "Immunosuppression"),
+      name = str_replace(name, "ModSev", "ModerateOrSevere"),
+      name = str_replace(name, "Comorbidities", ""),
+      name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
+      name = trimws(stringr::str_to_sentence(name)),
+      name = str_replace(name, "Hiv", "HIV"),
+      name = str_replace(name, "Chonic", "Chronic"),
+      name = paste0(name, ", n (\\%)")
+    ) %>%
+    add_row(ovr_missing) %>%
+    mutate(name = fct_inorder(name))
+  colnames(overall)[1] <- "Comorbidity"
+  colnames(overall) <- c("Comorbidity", paste0("Overall<br>(n = ", nrow(basdat), ")"))
+  return(overall)
+}
+
+
+#' @title generate_baseline_comorbidities_by
+#' @description
+#' Generates baseline co-morbidity summary across grouping variable
+#' @param dat The dataset
+#' @param grpvar The grouping variable
+#' @return A tibble giving the summary
+generate_baseline_comorbidities_by <- function(dat, grpvar = NULL) {
+  grpvar <- enquo(grpvar)
+  basdat <- dat %>%
+    group_by(!!grpvar) %>%
+    select(
+      BAS_rec,
+      !!grpvar,
+      BAS_Comorbidities_None,
+      BAS_ChonicCardiacDisease,
+      BAS_Hypertension,
+      BAS_Obesity,
+      BAS_ChronicLungDisease,
+      BAS_ObsSleepApnoea,
+      BAS_Asthma,
+      BAS_Diabetes,
+      BAS_ChronicKidneyDisease,
+      BAS_Dialysis,
+      BAS_ModSevLiverDisease,
+      BAS_Dementia,
+      BAS_MalignantNeoplasm,
+      BAS_HIVInfection,
+      BAS_IatrogenicImmuno
+    )
+  missing <- basdat %>%
+    group_by(!!grpvar) %>%
+    summarise(name = "Missing, n (\\%)", value = sprintf("%i (%3.0f)", sum(BAS_rec == 0), 100 * sum(BAS_rec == 0) / n())) %>%
+    spread(!!grpvar, value)
+  tab <- basdat %>%
+    select(-BAS_rec) %>%
+    summarise_all(., list(
+      `.n` = ~ sum(.x == "Yes", na.rm = T),
+      `.p` = ~ sum(.x == "Yes", na.rm = T) / n()
+    )) %>%
+    pivot_longer(-!!grpvar, names_to = c("name", "measure"), names_sep = "_\\.") %>%
+    pivot_wider(id_cols = !!grpvar:name, names_from = measure, values_from = value) %>%
+    mutate(value = sprintf("%i (%3.0f)", n, 100 * p)) %>%
+    select(-n, -p) %>%
+    spread(!!grpvar, value) %>%
+    mutate(
+      name = str_replace(name, "BAS_", ""),
+      name = str_replace(name, "_Variable", ""),
+      name = str_replace(name, "_", ""),
+      name = str_replace(name, "ObsS", "ObstructiveS"),
+      name = str_replace(name, "Immuno", "Immunosuppression"),
+      name = str_replace(name, "ModSev", "ModerateOrSevere"),
+      name = str_replace(name, "Comorbidities", ""),
+      name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
+      name = trimws(stringr::str_to_sentence(name)),
+      name = str_replace(name, "Hiv", "HIV"),
+      name = str_replace(name, "Chonic", "Chronic"),
+      name = paste0(name, ", n (\\%)")
+    ) %>%
+    add_row(missing)
+  colnames(tab)[1] <- "Comorbidity"
+  colnames(tab) <- c(
+    "Comorbidity",
+    basdat %>%
+      count(!!grpvar) %>%
+      mutate(lab = paste0(!!grpvar, "<br>(n = ", n, ")")) %>%
+      pull(lab)
+  )
+  return(tab)
+}
+
+
+#' @title generate_baseline_comorbidities_table
+#' @description
+#' Generates baseline co-morbidity summary tables for each domain
+#' @param dat The dataset
+#' @param closed If TRUE, one table per domain, otherwise just aggregated table
+#' @return A list of tibbles giving the summary tables
+#' @export
+generate_baseline_comorbidities_table <- function(dat, format = "html") {
+  ovr <- generate_baseline_comorbidities(dat)
+  ovrA <- generate_baseline_comorbidities(dat %>% filter(AAssignment != "A0"))
+  ovrC <- generate_baseline_comorbidities(dat %>% filter(CAssignment != "C0"))
+  byAgrp <- generate_baseline_comorbidities_by(dat %>% filter(AAssignment != "A0"), AAssignment)
+  byCgrp <- generate_baseline_comorbidities_by(dat %>% filter(CAssignment != "C0"), CAssignment)
+  tabA <- left_join(ovrA, byAgrp, by = "Comorbidity")[, c(1, (2 + 1:(ncol(byAgrp) - 1)), 2)]
+  tabC <- left_join(ovrC, byCgrp, by = "Comorbidity")[, c(1, (2 + 1:(ncol(byCgrp) - 1)), 2)]
+  fsize <- 12
+  if (format == "latex") {
+    fsize <- 9
+    colnames(tabA) <- linebreak(colnames(tabA), linebreaker = "<br>", align = "c")
+    colnames(tabC) <- linebreak(colnames(tabC), linebreaker = "<br>", align = "c")
+  }
+  outA <- kable(
+    tabA,
+    format = format,
+    booktabs = T,
+    linesep = "",
+    caption = "Baseline co-morbidities for participants randomised into the antiviral domain.",
+    align = "lrrrrrrrr",
+    escape = F
+  ) %>%
+    kable_styling(
+      bootstrap_options = "striped",
+      font_size = fsize,
+      latex_options = "HOLD_position"
+    ) %>%
+    add_header_above(c(" " = 1, "Antiviral" = ncol(byAgrp) - 1, " " = 1)) %>%
+    row_spec(0, align = "c")
+  outC <- kable(
+    tabC,
+    format = format,
+    booktabs = T,
+    linesep = "",
+    caption = "Baseline co-morbidities for participants randomised into the anticoagulation domain.",
+    align = "lrrrrrrrr",
+    escape = F
+  ) %>%
+    kable_styling(
+      bootstrap_options = "striped",
+      font_size = fsize,
+      latex_options = "HOLD_position"
+    ) %>%
+    add_header_above(c(" " = 1, "Anticoagulation" = ncol(byCgrp) - 1, " " = 1)) %>%
+    row_spec(0, align = "c")
   return(list(A = outA, C = outC))
 }
