@@ -359,3 +359,515 @@ generate_baseline_comorbidities_table <- function(dat, format = "html") {
     row_spec(0, align = "c")
   return(list(A = outA, C = outC))
 }
+
+
+# Baseline summary - prognostics  ----
+
+
+#' @title Baseline prognostics
+#' @description
+#' Generates baseline prognostics summary across grouping variable
+#' @param dat The dataset
+#' @param grpvar The grouping variable
+#' @return A tibble giving the summary
+generate_baseline_prognostics_by <- function(dat, grpvar = NULL) {
+  grpvar <- enquo(grpvar)
+  tab <- dat %>%
+    group_by(!!grpvar) %>%
+    summarise(
+      "On Room Air_Yes, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE),
+        100 * sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE) / n()
+      ),
+      "On Room Air_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_OnRoomAir24hrs)),
+        100 * sum(is.na(BAS_OnRoomAir24hrs)) / n()
+      ),
+      "GCS < 15_Yes, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_PatientGCS == "Yes", na.rm = TRUE),
+        100 * sum(BAS_PatientGCS == "Yes", na.rm = TRUE) / n()
+      ),
+      "GCS < 15_Missing, n (\\%)" = sprintf("%i (%.0f)", sum(is.na(BAS_PatientGCS)), 100 * sum(is.na(BAS_PatientGCS)) / n()),
+      "Peripheral oxygen saturation (SpO2)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_PeripheralOxygen, na.rm = TRUE),
+        quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.25),
+        quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.75)
+      ),
+      "Peripheral oxygen saturation (SpO2)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_PeripheralOxygen)),
+        100 * sum(is.na(BAS_PeripheralOxygen) / n())
+      ),
+      "Highest respiratory rate (breaths/minute)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_RespRateHighest, na.rm = TRUE),
+        quantile(BAS_RespRateHighest, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_RespRateHighest, prob = 0.75, na.rm = TRUE)
+      ),
+      "Highest respiratory rate_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_RespRateHighest)),
+        100 * sum(is.na(BAS_RespRateHighest) / n())
+      ),
+      "Highest recorded Urea (mmol/L)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_UreaResult, na.rm = TRUE),
+        quantile(BAS_UreaResult, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_UreaResult, prob = 0.75, na.rm = TRUE)
+      ),
+      "Highest recorded Urea (mmol/L)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_UreaResult)),
+        100 * sum(is.na(BAS_UreaResult) / n())
+      ),
+      "Highest recorded CRP (mg/L)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_CRPResult, na.rm = TRUE),
+        quantile(BAS_CRPResult, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_CRPResult, prob = 0.75, na.rm = TRUE)
+      ),
+      "Highest recorded CRP (mg/L)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_CRPResult)),
+        100 * sum(is.na(BAS_CRPResult) / n())
+      ),
+      "APTT_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)", median(BAS_APTT, na.rm = TRUE),
+        quantile(BAS_APTT, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_APTT, prob = 0.75, na.rm = TRUE)
+      ),
+      "APTT_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_APTT)),
+        100 * sum(is.na(BAS_APTT) / n())
+      ),
+      "INR_Mean (SD)" = sprintf("%.2f (%.2f)", mean(BAS_INR, na.rm = TRUE), sd(BAS_INR, na.rm = TRUE)),
+      "INR_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_INR)),
+        100 * sum(is.na(BAS_INR) / n())
+      ),
+      "Fibrinogen (g/L)_Mean (SD)" = sprintf("%.2f (%.2f)", mean(BAS_FibrinogenResult, na.rm = TRUE), sd(BAS_FibrinogenResult, na.rm = TRUE)),
+      "Fibrinogen (g/L)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_FibrinogenResult)),
+        100 * sum(is.na(BAS_FibrinogenResult) / n())
+      ),
+      "Prothrombin time (sec)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)", median(BAS_ProthrombinTime, na.rm = TRUE),
+        quantile(BAS_ProthrombinTime, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_ProthrombinTime, prob = 0.75, na.rm = TRUE)
+      ),
+      "Prothrombin time (sec)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_ProthrombinTime)),
+        100 * sum(is.na(BAS_ProthrombinTime) / n())
+      ),
+      "Taking aspirin_Yes, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_PatientTakingAspirin == "Yes", na.rm = TRUE),
+        100 * sum(BAS_PatientTakingAspirin == "Yes", na.rm = TRUE) / n()
+      ),
+      "Taking aspirin_Missing, n (\\%)" = sprintf("%i (%.0f)", sum(is.na(BAS_PatientTakingAspirin)), 100 * sum(is.na(BAS_PatientTakingAspirin)) / n()),
+      "Time from onset of symptoms to hospitalisation_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(as.numeric(EL_AdmittedToHospital - EL_FirstSymptoms)),
+        quantile(as.numeric(EL_AdmittedToHospital - EL_FirstSymptoms), 0.25),
+        quantile(as.numeric(EL_AdmittedToHospital - EL_FirstSymptoms), 0.75)
+      ),
+      "Time from hospitalisation to randomisation_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(as.numeric(RandDate - EL_AdmittedToHospital)),
+        quantile(as.numeric(RandDate - EL_AdmittedToHospital), 0.25),
+        quantile(as.numeric(RandDate - EL_AdmittedToHospital), 0.75)
+      ),
+      "D-dimer_Test performed, n(\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_DDimerTestPerformed == "Yes", na.rm = TRUE),
+        100 * mean(BAS_DDimerTestPerformed == "Yes")
+      ),
+      "D-dimer_Out of range, n(\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_DDimerOutOfRange == "Yes", na.rm = TRUE),
+        100 * mean(BAS_DDimerOutOfRange == "Yes", na.rm = TRUE)
+      )
+    ) %>%
+    gather(Variable, value, -!!grpvar, factor_key = TRUE) %>%
+    spread(!!grpvar, value)
+  colnames(tab)[-1] <- dat %>%
+    count(!!grpvar) %>%
+    mutate(lab = paste0(!!grpvar, "<br>(n = ", n, ")")) %>%
+    pull(lab)
+  return(tab)
+}
+
+
+#' @title Baseline prognostics overall
+#' @description
+#' Generates baseline prognostics summary overall
+#' @param dat The dataset
+#' @return A tibble giving the summary
+generate_baseline_prognostics <- function(dat) {
+  tab <- dat %>%
+    summarise(
+      "On Room Air_Yes, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE),
+        100 * sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE) / n()
+      ),
+      "On Room Air_Missing, n (\\%)" = sprintf("%i (%.0f)", sum(is.na(BAS_OnRoomAir24hrs)), 100 * sum(is.na(BAS_OnRoomAir24hrs)) / n()),
+      "GCS < 15_Yes, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_PatientGCS == "Yes", na.rm = TRUE),
+        100 * sum(BAS_PatientGCS == "Yes", na.rm = TRUE) / n()
+      ),
+      "GCS < 15_Missing, n (\\%)" = sprintf("%i (%.0f)", sum(is.na(BAS_PatientGCS)), 100 * sum(is.na(BAS_PatientGCS)) / n()),
+      "Peripheral oxygen saturation (SpO2)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_PeripheralOxygen, na.rm = TRUE),
+        quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.25),
+        quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.75)
+      ),
+      "Peripheral oxygen saturation (SpO2)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_PeripheralOxygen)),
+        100 * sum(is.na(BAS_PeripheralOxygen) / n())
+      ),
+      "Highest respiratory rate (breaths/minute)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_RespRateHighest, na.rm = TRUE),
+        quantile(BAS_RespRateHighest, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_RespRateHighest, prob = 0.75, na.rm = TRUE)
+      ),
+      "Highest respiratory rate_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_RespRateHighest)),
+        100 * sum(is.na(BAS_RespRateHighest) / n())
+      ),
+      "Highest recorded Urea (mmol/L)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_UreaResult, na.rm = TRUE),
+        quantile(BAS_UreaResult, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_UreaResult, prob = 0.75, na.rm = TRUE)
+      ),
+      "Highest recorded Urea (mmol/L)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_UreaResult)),
+        100 * sum(is.na(BAS_UreaResult) / n())
+      ),
+      "Highest recorded CRP (mg/L)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(BAS_CRPResult, na.rm = TRUE),
+        quantile(BAS_CRPResult, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_CRPResult, prob = 0.75, na.rm = TRUE)
+      ),
+      "Highest recorded CRP (mg/L)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_CRPResult)),
+        100 * sum(is.na(BAS_CRPResult) / n())
+      ),
+      "APTT_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)", median(BAS_APTT, na.rm = TRUE),
+        quantile(BAS_APTT, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_APTT, prob = 0.75, na.rm = TRUE)
+      ),
+      "APTT_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_APTT)),
+        100 * sum(is.na(BAS_APTT) / n())
+      ),
+      "INR_Mean (SD)" = sprintf("%.2f (%.2f)", mean(BAS_INR, na.rm = TRUE), sd(BAS_INR, na.rm = TRUE)),
+      "INR_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_INR)),
+        100 * sum(is.na(BAS_INR) / n())
+      ),
+      "Fibrinogen (g/L)_Mean (SD)" = sprintf("%.2f (%.2f)", mean(BAS_FibrinogenResult, na.rm = TRUE), sd(BAS_FibrinogenResult, na.rm = TRUE)),
+      "Fibrinogen (g/L)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_FibrinogenResult)),
+        100 * sum(is.na(BAS_FibrinogenResult) / n())
+      ),
+      "Prothrombin time (sec)_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)", median(BAS_ProthrombinTime, na.rm = TRUE),
+        quantile(BAS_ProthrombinTime, prob = 0.25, na.rm = TRUE),
+        quantile(BAS_ProthrombinTime, prob = 0.75, na.rm = TRUE)
+      ),
+      "Prothrombin time (sec)_Missing, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(is.na(BAS_ProthrombinTime)),
+        100 * sum(is.na(BAS_ProthrombinTime) / n())
+      ),
+      "Taking aspirin_Yes, n (\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_PatientTakingAspirin == "Yes", na.rm = TRUE),
+        100 * sum(BAS_PatientTakingAspirin == "Yes", na.rm = TRUE) / n()
+      ),
+      "Taking aspirin_Missing, n (\\%)" = sprintf("%i (%.0f)", sum(is.na(BAS_PatientTakingAspirin)), 100 * sum(is.na(BAS_PatientTakingAspirin)) / n()),
+      "Time from onset of symptoms to hospitalisation_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(as.numeric(EL_AdmittedToHospital - EL_FirstSymptoms)),
+        quantile(as.numeric(EL_AdmittedToHospital - EL_FirstSymptoms), 0.25),
+        quantile(as.numeric(EL_AdmittedToHospital - EL_FirstSymptoms), 0.75)
+      ),
+      "Time from hospitalisation to randomisation_Median (IQR)" = sprintf(
+        "%.0f (%.0f, %.0f)",
+        median(as.numeric(RandDate - EL_AdmittedToHospital)),
+        quantile(as.numeric(RandDate - EL_AdmittedToHospital), 0.25),
+        quantile(as.numeric(RandDate - EL_AdmittedToHospital), 0.75)
+      ),
+      "D-dimer_Test performed, n(\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_DDimerTestPerformed == "Yes", na.rm = TRUE),
+        100 * mean(BAS_DDimerTestPerformed == "Yes")
+      ),
+      "D-dimer_Out of range, n(\\%)" = sprintf(
+        "%i (%.0f)",
+        sum(BAS_DDimerOutOfRange == "Yes", na.rm = TRUE),
+        100 * mean(BAS_DDimerOutOfRange == "Yes", na.rm = TRUE)
+      )
+    ) %>%
+    gather(Variable, value, factor_key = TRUE)
+  colnames(tab)[2] <- paste0("Overall<br>(n = ", nrow(dat), ")")
+  return(tab)
+}
+
+
+#' @title Baseline prognostics table
+#' @description
+#' Generates baseline prognostics summary tables
+#' @param dat The dataset
+#' @param closed If TRUE, generates summary only overall, if FALSE generates by domain
+#' @return A tibble giving the summary
+#' @export
+generate_baseline_prognostics_table <- function(dat, format = "html") {
+  ovrA <- generate_baseline_prognostics(dat %>% filter(AAssignment != "A0"))
+  ovrC <- generate_baseline_prognostics(dat %>% filter(CAssignment != "C0"))
+  byAgrp <- generate_baseline_prognostics_by(dat %>% filter(AAssignment != "A0"), AAssignment)
+  byCgrp <- generate_baseline_prognostics_by(dat %>% filter(CAssignment != "C0"), CAssignment)
+  tabA <- left_join(ovrA, byAgrp, by = "Variable")[, c(1, (2 + 1:(ncol(byAgrp) - 1)), 2)]
+  tabC <- left_join(ovrC, byCgrp, by = "Variable")[, c(1, (2 + 1:(ncol(byCgrp) - 1)), 2)]
+  fsize <- 12
+  if (format == "latex") {
+    fsize <- 9
+    colnames(tabA) <- linebreak(colnames(tabA), linebreaker = "<br>", align = "c")
+    colnames(tabC) <- linebreak(colnames(tabC), linebreaker = "<br>", align = "c")
+  }
+  make_packed_rows <- function(tab) {
+    tab %>%
+      pack_rows("Was the patient on room air for any of the preceding 24 hours?", 1, 2) %>%
+      pack_rows("Was the patient's GCS < 15?", 3, 4) %>%
+      pack_rows("Peripheral oxygen saturation (SpO2) on room air (Lowest)", 5, 6) %>%
+      pack_rows("Highest respiratory rate (breaths/minute)", 7, 8) %>%
+      pack_rows("Highest recorded Urea in the last 24 hours (mmol/L)", 9, 10) %>%
+      pack_rows("Highest recorded CRP in the last 24 hours (mg/L)", 11, 12) %>%
+      pack_rows("APTT\\\\textsuperscript{1}", 13, 14, escape = F) %>%
+      pack_rows("INR\\\\textsuperscript{1}", 15, 16, escape = F) %>%
+      pack_rows("Fibrinogen\\\\textsuperscript{1} (g/L)", 17, 18, escape = F) %>%
+      pack_rows("Prothrombin time\\\\textsuperscript{1} (sec)", 19, 20, escape = F) %>%
+      pack_rows("Taking aspirin", 21, 22) %>%
+      pack_rows("Time from onset of symptoms to hospitalisation", 23, 23) %>%
+      pack_rows("Time from hospitalisation to randomisation", 24, 24) %>%
+      pack_rows("D-dimer", 25, 26) %>%
+      row_spec(0, align = "c") %>%
+      footnote(number = "For APTT, INR, Fibrinogen, and Prothrombin only at least one required.")
+  }
+  outA <- tabA %>%
+    mutate(Variable = str_replace_all(Variable, ".*_", "")) %>%
+    kable(
+      format = format,
+      booktabs = TRUE,
+      longtable = TRUE,
+      escape = F,
+      linesep = "",
+      caption = "Baseline prognostic variables for participants randomised into domain C.",
+      align = "lrrrrr"
+    ) %>%
+    kable_styling(
+      bootstrap_options = "striped",
+      font_size = fsize,
+      latex_options = "HOLD_position"
+    ) %>%
+    make_packed_rows() %>%
+    add_header_above(c(" " = 1, "Antiviral" = ncol(byAgrp) - 1, " " = 1))
+  outC <- tabC %>%
+    mutate(Variable = str_replace_all(Variable, ".*_", "")) %>%
+    kable(
+      format = format,
+      booktabs = TRUE,
+      longtable = TRUE,
+      escape = F,
+      linesep = "",
+      caption = "Baseline prognostic variables for participants randomised into domain C.",
+      align = "lrrrrr"
+    ) %>%
+    kable_styling(
+      bootstrap_options = "striped",
+      font_size = fsize,
+      latex_options = "HOLD_position"
+    ) %>%
+    make_packed_rows() %>%
+    add_header_above(c(" " = 1, "Anticoagulation" = ncol(byCgrp) - 1, " " = 1))
+  return(list(A = outA, C = outC))
+}
+
+
+# Discharge summary - other drugs ----
+
+
+#' @title Drugs used during hospital stay overall
+#' @description
+#' Generates overall summary of drugs used during hospital stay,
+#' as recorded on discharge
+#' @param dat The dataset
+#' @return A tibble giving the summary
+generate_discharge_drugs <- function(dat) {
+  tab <- dat %>%
+    filter(DIS_rec == 1) %>%
+    select(
+      DIS_ReceivedAntibacterialDrugs,
+      DIS_NoAntiviral = DIS_ReceivedNone,
+      DIS_CamostatReceived,
+      DIS_FavipiravirReceived,
+      DIS_DoxycyclineReceived,
+      DIS_IvermectinReceived,
+      DIS_RemdesivirReceived,
+      DIS_OtherAntiviral = DIS_ReceivedOther,
+      DIS_NoImmunomodulatory = Dis_ImmunoNone,
+      DIS_ImmunoAnakinra,
+      DIS_ImmunoCorticosteroids,
+      DIS_ImmunoSarilumab,
+      DIS_ImmunoAzithromycin,
+      DIS_ImmunoTocilizumab,
+      DIS_ImmunoBaricitinib,
+      DIS_ImmunoRuxolitinib,
+      DIS_ImmunoTofacitinib,
+      DIS_ImmunoZinc,
+      DIS_OtherImmunomodulatory = DIS_IummunoOther
+    ) %>%
+    summarise_all(., list(Variable = ~ sprintf("%i (%.0f)", sum(.x == "Yes", na.rm = TRUE), 100 * sum(.x == "Yes", na.rm = TRUE) / n()))) %>%
+    pivot_longer(everything()) %>%
+    mutate(name = str_replace(name, "DIS_Received", ""),
+           name = str_replace(name, "DIS_Immuno", ""),
+           name = str_replace(name, "DIS_Iummuno", ""),
+           name = str_replace(name, "Dis_Immuno", ""),
+           name = str_replace(name, "DIS_", ""),
+           name = str_replace(name, "Received_Variable", ""),
+           name = str_replace(name, "_Variable", ""),
+           name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
+           name = str_to_sentence(trimws(name)),
+           name = paste0(name, ", n (\\%)"))
+  colnames(tab) <- c("Drug received", paste0("Overall<br>(n = ", nrow(dat %>% filter(DIS_rec == 1)), ")"))
+  return(tab)
+}
+
+
+#' @title Drugs used during hospital stay by group
+#' @description
+#' Generates summary of drugs used during hospital stay,
+#' as recorded on discharge, by grouping variable
+#' @param dat The dataset
+#' @param grpvar The grouping variable
+#' @return A tibble giving the summary
+generate_discharge_drugs_by <- function(dat, grpvar = NULL) {
+  grpvar <- enquo(grpvar)
+  tab <- dat %>%
+    filter(DIS_rec == 1) %>%
+    group_by(!!grpvar) %>%
+    select(
+      !!grpvar,
+      DIS_ReceivedAntibacterialDrugs,
+      DIS_NoAntiviral = DIS_ReceivedNone,
+      DIS_CamostatReceived,
+      DIS_FavipiravirReceived,
+      DIS_DoxycyclineReceived,
+      DIS_IvermectinReceived,
+      DIS_RemdesivirReceived,
+      DIS_OtherAntiviral = DIS_ReceivedOther,
+      DIS_NoImmunomodulatory = Dis_ImmunoNone,
+      DIS_ImmunoAnakinra,
+      DIS_ImmunoCorticosteroids,
+      DIS_ImmunoSarilumab,
+      DIS_ImmunoAzithromycin,
+      DIS_ImmunoTocilizumab,
+      DIS_ImmunoBaricitinib,
+      DIS_ImmunoRuxolitinib,
+      DIS_ImmunoTofacitinib,
+      DIS_ImmunoZinc,
+      DIS_OtherImmunomodulatory = DIS_IummunoOther
+    ) %>%
+    summarise_all(., list(Variable = ~ sprintf("%i (%.0f)", sum(.x == "Yes", na.rm = TRUE), 100 * sum(.x == "Yes", na.rm = TRUE) / n()))) %>%
+    gather(name, value, -!!grpvar, factor_key = TRUE) %>%
+    spread(!!grpvar, value) %>%
+    mutate(name = str_replace(name, "DIS_Received", ""),
+           name = str_replace(name, "DIS_Immuno", ""),
+           name = str_replace(name, "DIS_Iummuno", ""),
+           name = str_replace(name, "Dis_Immuno", ""),
+           name = str_replace(name, "DIS_", ""),
+           name = str_replace(name, "Received_Variable", ""),
+           name = str_replace(name, "_Variable", ""),
+           name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
+           name = str_to_sentence(trimws(name)),
+           name = paste0(name, ", n (\\%)"))
+  colnames(tab) <- c("Drug received", dat %>% filter(DIS_rec == 1) %>% count(!!grpvar) %>% mutate(lab = paste0(!!grpvar, "<br>(n = ", n, ")")) %>% pull(lab))
+  return(tab)
+}
+
+
+#' @title Drugs used during hospital stay table
+#' @description
+#' Generates summary table of drugs used during hospital stay,
+#' as recorded on discharge, by domain or overall.
+#' @param dat The dataset
+#' @param closed If TRUE, generate overall table only, if FALSE one table per domain
+#' @return A tibble giving the summary
+#' @export
+generate_discharge_drugs_table <- function(dat, format = "html") {
+  ovrA   <- generate_discharge_drugs(dat %>% filter(AAssignment != "A0"))
+  ovrC   <- generate_discharge_drugs(dat %>% filter(CAssignment != "C0"))
+  bygrpA <- generate_discharge_drugs_by(dat %>% filter(AAssignment != "A0"), AAssignment)
+  bygrpC <- generate_discharge_drugs_by(dat %>% filter(CAssignment != "C0"), CAssignment)
+  tabA <- left_join(ovrA, bygrpA, by = "Drug received")[, c(1,(2 + 1:(ncol(bygrpA) - 1)), 2)]
+  tabC <- left_join(ovrC, bygrpC, by = "Drug received")[, c(1,(2 + 1:(ncol(bygrpC) - 1)), 2)]
+  fsize <- 12
+  if(format == "latex") {
+    fsize <- 9
+    colnames(tabA) <- linebreak(colnames(tabA), linebreaker = "<br>", align = "c")
+    colnames(tabC) <- linebreak(colnames(tabC), linebreaker = "<br>", align = "c")
+  }
+  outA <- kable(
+    tabA,
+    format = format,
+    booktabs = T,
+    caption = "Drugs received during hospital stay, antiviral domain.",
+    align = "lrrrrrrrr",
+    escape = F) %>%
+    kable_styling(
+      bootstrap_options = "striped",
+      font_size = fsize,
+      latex_options = "HOLD_position") %>%
+    pack_rows("Antivirals", 2, 8) %>%
+    pack_rows("Immunomodulatory", 9, 19) %>%
+    row_spec(0, align = "c") %>%
+    add_header_above(c(" " = 1, "Antiviral" = ncol(bygrpA) - 1, " " = 1))
+  outC <- kable(
+    tabC,
+    format = format,
+    booktabs = T,
+    caption = "Drugs received during hospital stay, anticoagulation domain.",
+    align = "lrrrrrrrr",
+    escape = F) %>%
+    kable_styling(
+      bootstrap_options = "striped",
+      font_size = fsize,
+      latex_options = "HOLD_position") %>%
+    pack_rows("Antivirals", 2, 8) %>%
+    pack_rows("Immunomodulatory", 9, 19) %>%
+    row_spec(0, align = "c") %>%
+    add_header_above(c(" " = 1, "Anticoagulation" = ncol(bygrpC) - 1, " " = 1))
+  return(list(A = outA, C = outC))
+}
