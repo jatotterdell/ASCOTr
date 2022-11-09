@@ -1,6 +1,7 @@
 # Filter analysis sets ----
 
-#' @title filter_fas_itt
+
+#' @title FAS-ITT set
 #' @description
 #' Filter the full dataset down to the FAS-ITT,
 #' that is, those who were enrolled and did not
@@ -16,7 +17,8 @@ filter_fas_itt <- function(dat) {
   )
 }
 
-#' @title filter_acs_itt
+
+#' @title ACS-ITT set
 #' @description
 #' Filter the full dataset down to the ACS-ITT,
 #' that is, those who were enrolled and did not
@@ -34,7 +36,8 @@ filter_acs_itt <- function(dat) {
   )
 }
 
-#' @title filter_avs_itt
+
+#' @title AVS-ITT set
 #' @description
 #' Filter the full dataset down to the AVS-ITT,
 #' that is, those who were enrolled and did not
@@ -52,7 +55,9 @@ filter_avs_itt <- function(dat) {
   )
 }
 
+
 # Filter concurrent controls ----
+
 
 #' @title filter_concurrent_intermediate
 #' @description
@@ -66,9 +71,10 @@ filter_concurrent_intermediate <- function(dat) {
     filter(CAssignment %in% c("C1", "C2")) %>%
     mutate(
       CAssignment = droplevels(CAssignment),
-      randC  = droplevels(randC)
+      randC = droplevels(randC)
     )
 }
+
 
 #' @title filter_concurrent_std_aspirin
 #' @description
@@ -82,10 +88,13 @@ filter_concurrent_std_aspirin <- function(dat) {
     filter(RandDate < get_intervention_dates()$endate[3]) %>%
     # Patients ineligible for aspirin arm
     filter(inelgc3 == 0) %>%
-    mutate(CAssignment = droplevels(CAssignment),
-           randC  = droplevels(randC),
-           ctry = droplevels(ctry))
+    mutate(
+      CAssignment = droplevels(CAssignment),
+      randC = droplevels(randC),
+      ctry = droplevels(ctry)
+    )
 }
+
 
 #' @title filter_concurrent_therapeutic
 #' @description
@@ -98,35 +107,67 @@ filter_concurrent_therapeutic <- function(dat) {
     # Patients randomised after opening of C4
     # Use the provided activation dates for V5
     filter(EL_ProtocolVersion == "5.0") %>%
-    mutate(CAssignment = droplevels(CAssignment),
-           randC  = droplevels(randC),
-           ctry = relevel(ctry, ref = "NP"))
+    mutate(
+      CAssignment = droplevels(CAssignment),
+      randC = droplevels(randC),
+      ctry = relevel(ctry, ref = "NP")
+    )
 }
+
 
 # Transformations ----
 
-#' @title transmute_model_cols_grp_aus_nz
+#' @title Add epoch term to dataset
 #' @description
-#' Same as transmute_model_cols, but join Australia and new zealand
-#' together as one "region" with nested sites.
-#' @param dat Dataset
-#' @return Transformed dataset with limited variables
+#' Adds an epoch term to the dataset where each epoch
+#' is a 4 week window from the most recent randomisation.
+#' If any epoch as less than 5 participants, then
+#' it is combined with the most recent adjacent epoch.
+#' @param dat A dataset with `RandDate`
+#' @return A dataset with epoch variables
 #' @export
-transmute_model_cols_grp_aus_nz <- function(dat) {
-  site_counts <- dat %>%
-    dplyr::count(
+add_epoch_term <- function(dat) {
+  dat |>
+    mutate(
+      relRandDate = as.numeric(max(RandDate) - RandDate),
+      epoch_raw = floor(relRandDate / 28),
+    ) |>
+    group_by(epoch_raw) |>
+    mutate(epoch_raw_lab = paste(
+      format(min(RandDate), "%d%b%y"),
+      format(max(RandDate), "%d%b%y"),
+      sep = "-"
+    )) |>
+    ungroup()
+}
+
+
+#' @title Add region and site groupings to dataset
+#' @description
+#' Adds region groups and site nested within regions to dataset.
+#' Sites with less than 5 participants are combined into
+#' an "other" sites group within region.
+#' @param dat A dataset with `Country` and `Location` variables
+#' @return A dataset with ctry and site variables.
+#' @export
+add_region_site_groups <- function(dat) {
+  site_counts <- dat |>
+    count(
       Region = fct_collapse(
         factor(Country, levels = c("IN", "AU", "NP", "NZ")),
-        "AU/NZ" = c("AU", "NZ")),
-      Location)
-  merge_ausnz <- site_counts %>%
-    filter(Region == "AU/NZ", n < 5) %>%
+        "AU/NZ" = c("AU", "NZ")
+      ),
+      Location
+    )
+  merge_ausnz <- site_counts |>
+    filter(Region == "AU/NZ", n < 5) |>
     pull(Location)
-  dat <- dat %>%
+  dat <- dat |>
     mutate(
       ctry = fct_collapse(
         factor(Country, levels = c("IN", "AU", "NP", "NZ")),
-        "AU/NZ" = c("AU", "NZ")),
+        "AU/NZ" = c("AU", "NZ")
+      ),
       # group sites with < 5 counts
       site = fct_collapse(
         factor(Location, levels = site_counts$Location),
@@ -134,38 +175,29 @@ transmute_model_cols_grp_aus_nz <- function(dat) {
       )
     )
   region_site <- dat %>%
-    dplyr::count(ctry, site) %>%
+    count(ctry, site) %>%
     mutate(
       ctry_num = as.numeric(ctry),
       site_num = as.numeric(fct_inorder(site))
     )
-  dat <- dat %>%
-    left_join(region_site %>% select(-n), by = c("ctry", "site")) %>%
-    transmute(
-      StudyPatientID,
-      EL_ProtocolVersion,
-      Sex,
-      AAssignment= droplevels(factor(
-        AAssignment, levels = c("A0", "A1", "A2"))),
-      CAssignment = droplevels(factor(
-        CAssignment, levels = c("C1", "C0", "C2", "C3", "C4"))),
-      RandDate,
-      randA = factor(AAssignment, levels = c("A1", "A2")),
-      randC = factor(CAssignment, levels = c("C1", "C2", "C3", "C4")),
-      PO,
-      out_rec,
-      out_ttr,
-      D28_who,
-      D28_who2,
-      D28_death,
-      D28_OutcomeTotalDaysHospitalised,
-      DIS_day,
-      out_dafh,
-      D28_OutcomeDaysFreeOfVentilation,
-      out_dafv,
-      out_sob,
-      out_mmrc_scale,
-      AgeAtEntry,
+  dat |>
+    left_join(
+      region_site |>
+        select(-n),
+      by = c("ctry", "site")
+    )
+}
+
+
+#' @title Add derived covariates
+#' @description
+#' Adds a collection of manually coded covariates (e.g. converted "Yes"/"No" data to 1/0 data etc)
+#' @param dat A dataset
+#' @returns A dataset with added covariates
+#' @export
+add_derived_covariates <- function(dat) {
+  dat |>
+    mutate(
       aspirin = if_else(BAS_PatientTakingAspirin == "Yes", 1, 0),
       ddimer_oor = factor(case_when(
         is.na(BAS_DDimerOutOfRange) ~ 2,
@@ -204,31 +236,38 @@ transmute_model_cols_grp_aus_nz <- function(dat) {
       age_c = AgeAtEntry - mean(AgeAtEntry),
       agegte60,
       agegte60_c = agegte60 - mean(agegte60),
-      country = factor(Country, levels = c("IN", "AU", "NP", "NZ")),
-      inelgc3 = if_else(EL_inelg_c3 == 0 | is.na(EL_inelg_c3), 0, 1),
-      ctry = fct_collapse(
-        factor(Country, levels = c("IN", "AU", "NP", "NZ")),
-        "AU/NZ" = c("AU", "NZ")),
-      ctry_num,
-      site_raw = factor(Location, levels = site_counts$Location),
-      # group sites with < 5 counts
-      site = fct_collapse(site_raw, `AU/NZ other` = merge_ausnz),
-      site_num,
-      relRandDate = as.numeric(max(RandDate) - RandDate),
-      epoch_raw = floor(relRandDate / 28),
-      # Manual merge after check of count(epoch)
+      inelgc3 = if_else(EL_inelg_c3 == 0 | is.na(EL_inelg_c3), 0, 1)
+    )
+}
+
+# Analysis Sets ----
+
+#' @title Create the FAS-ITT set with relevant variables
+#' @description
+#' Creates the FAS-ITT analysis set for the primary outcome.
+#' May need some tweaking for secondary outcomes.
+#' @param dat A dataset
+#' @returns The FAS-ITT set
+#' @export
+make_fas_itt_set <- function(dat) {
+  dat  |>
+    filter_fas_itt() |>
+    add_derived_covariates() |>
+    add_region_site_groups() |>
+    add_epoch_term() |>
+    # Manually correct epoch data
+    mutate(
       epoch = case_when(
-        epoch_raw %in% 0:1 ~ 2,
-        epoch_raw == 14 ~ 13,
+        epoch_raw == 19 ~ 18,
+        epoch_raw %in% 0:6 ~ 6,
         TRUE ~ epoch_raw
-      ) - 1,
-    ) %>%
-    group_by(epoch) %>%
-    mutate(epoch_lab = paste(
+      ) - 6
+    ) |>
+    group_by(epoch) |>
+    mutate(epoch_raw_lab = paste(
       format(min(RandDate), "%d%b%y"),
       format(max(RandDate), "%d%b%y"),
-      sep = "-")
-    ) %>%
+      sep = "-"
+    )) |>
     ungroup()
-  return(dat)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_filtering.R
 \name{filter_avs_itt}
 \alias{filter_avs_itt}
-\title{filter_avs_itt}
+\title{AVS-ITT set}
 \usage{
 filter_avs_itt(dat)
 }

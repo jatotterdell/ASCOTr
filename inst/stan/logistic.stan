@@ -1,11 +1,11 @@
 // Simple logistic regression model for Bernoulli outcome
 
 data {
-  int N;
-  int K;
-  matrix[N, K] X;
-  array[N] int y;
-  vector[K] beta_sd;
+  int N; // number of observations
+  int K; // number of design parameters
+  matrix[N, K] X; // design matrix
+  array[N] int y; // outcome response
+  vector[K] beta_sd; // prior standard deviation for beta parameters
 }
 
 parameters {

@@ -53,7 +53,7 @@ intervention_labels_short <- function() {
   list(
     AAssignment = c(
       "A0" = "Not randomised A",
-      "A1" = "None",
+      "A1" = "SoC",
       "A2" = "Nafamostat"
     ),
     CAssignment = c(
@@ -76,7 +76,7 @@ intervention_labels_short_break <- function() {
   list(
     AAssignment = c(
       "A0" = "Not\nrandomised A",
-      "A1" = "None",
+      "A1" = "SoC",
       "A2" = "Nafamostat"
     ),
     CAssignment = c(

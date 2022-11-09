@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_filtering.R
 \name{filter_fas_itt}
 \alias{filter_fas_itt}
-\title{filter_fas_itt}
+\title{FAS-ITT set}
 \usage{
 filter_fas_itt(dat)
 }

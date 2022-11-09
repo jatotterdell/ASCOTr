@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_filtering.R
 \name{filter_acs_itt}
 \alias{filter_acs_itt}
-\title{filter_acs_itt}
+\title{ACS-ITT set}
 \usage{
 filter_acs_itt(dat)
 }
