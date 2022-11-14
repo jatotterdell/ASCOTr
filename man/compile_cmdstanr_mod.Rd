@@ -5,7 +5,7 @@
 \title{compile_cmdstanr_mod
 Compile provided cumulative logistic Stan model for cmdstanr.}
 \usage{
-compile_cmdstanr_mod(mod_name)
+compile_cmdstanr_mod(mod_name, ...)
 }
 \arguments{
 \item{mod_name}{The model name}

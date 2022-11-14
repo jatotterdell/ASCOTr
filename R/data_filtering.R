@@ -198,6 +198,10 @@ add_region_site_groups <- function(dat) {
 add_derived_covariates <- function(dat) {
   dat |>
     mutate(
+      facA = factor(AAssignment, levels = c("A1", "A0", "A2")),
+      facC = factor(CAssignment, levels = c("C1", "C0", "C2", "C3", "C4")),
+      randA = factor(AAssignment, levels = c("A1", "A2")),
+      randC = factor(CAssignment, levels = c("C1", "C2", "C3", "C4")),
       aspirin = if_else(BAS_PatientTakingAspirin == "Yes", 1, 0),
       ddimer_oor = factor(case_when(
         is.na(BAS_DDimerOutOfRange) ~ 2,
@@ -240,7 +244,9 @@ add_derived_covariates <- function(dat) {
     )
 }
 
+
 # Analysis Sets ----
+
 
 #' @title Create the FAS-ITT set with relevant variables
 #' @description
@@ -250,7 +256,7 @@ add_derived_covariates <- function(dat) {
 #' @returns The FAS-ITT set
 #' @export
 make_fas_itt_set <- function(dat) {
-  dat  |>
+  dat |>
     filter_fas_itt() |>
     add_derived_covariates() |>
     add_region_site_groups() |>
@@ -260,6 +266,56 @@ make_fas_itt_set <- function(dat) {
       epoch = case_when(
         epoch_raw == 19 ~ 18,
         epoch_raw %in% 0:6 ~ 6,
+        TRUE ~ epoch_raw
+      ) - 6
+    ) |>
+    group_by(epoch) |>
+    mutate(epoch_raw_lab = paste(
+      format(min(RandDate), "%d%b%y"),
+      format(max(RandDate), "%d%b%y"),
+      sep = "-"
+    )) |>
+    ungroup()
+}
+
+
+#' @title Create the ACS-ITT set with relevant variables
+#' @description
+#' Creates the ACS-ITT analysis set for the primary outcome.
+#' May need some tweaking for secondary outcomes.
+#' @param dat A dataset
+#' @returns The ACS-ITT set
+#' @export
+make_acs_itt_set <- function(dat) {
+  dat |>
+    filter_acs_itt() |>
+    add_derived_covariates() |>
+    add_region_site_groups() |>
+    add_epoch_term()
+    # Manually correct epoch data
+}
+
+
+#' @title Create the AVS-ITT set with relevant variables
+#' @description
+#' Creates the AVS-ITT analysis set for the primary outcome.
+#' May need some tweaking for secondary outcomes.
+#' @param dat A dataset
+#' @returns The AVS-ITT set
+#' @export
+make_avs_itt_set <- function(dat) {
+  dat |>
+    filter_avs_itt() |>
+    add_derived_covariates() |>
+    add_region_site_groups() |>
+    add_epoch_term() |>
+    # Manually correct epoch data
+    mutate(
+      epoch = case_when(
+        epoch_raw %in% 14:15 ~ 13,
+        epoch_raw %in% 0:3 ~ 6,
+        epoch_raw %in% 4:6 ~ 7,
+        epoch_raw %in% 7:8 ~ 8,
         TRUE ~ epoch_raw
       ) - 6
     ) |>
