@@ -267,7 +267,7 @@ make_fas_itt_set <- function(dat) {
         epoch_raw == 19 ~ 18,
         epoch_raw %in% 0:6 ~ 6,
         TRUE ~ epoch_raw
-      ) - 6
+      ) - 5
     ) |>
     group_by(epoch) |>
     mutate(epoch_raw_lab = paste(
@@ -291,8 +291,22 @@ make_acs_itt_set <- function(dat) {
     filter_acs_itt() |>
     add_derived_covariates() |>
     add_region_site_groups() |>
-    add_epoch_term()
+    add_epoch_term() |>
     # Manually correct epoch data
+    mutate(
+      epoch = case_when(
+        epoch_raw == 14 ~ 13,
+        epoch_raw %in% 0:2 ~ 2,
+        TRUE ~ epoch_raw
+      ) - 1
+    ) |>
+    group_by(epoch) |>
+    mutate(epoch_raw_lab = paste(
+      format(min(RandDate), "%d%b%y"),
+      format(max(RandDate), "%d%b%y"),
+      sep = "-"
+    )) |>
+    ungroup()
 }
 
 
@@ -317,7 +331,7 @@ make_avs_itt_set <- function(dat) {
         epoch_raw %in% 4:6 ~ 7,
         epoch_raw %in% 7:8 ~ 8,
         TRUE ~ epoch_raw
-      ) - 6
+      ) - 5
     ) |>
     group_by(epoch) |>
     mutate(epoch_raw_lab = paste(
