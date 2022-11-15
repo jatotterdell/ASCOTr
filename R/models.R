@@ -25,14 +25,14 @@ compile_cmdstanr_mod <- function(mod_name, ...) {
 #' @export
 make_domA_design <- function(dat, ctr = contr.equalprior) {
   XA <- model.matrix(
-    ~ randA,
-    model.frame(~ randA, dat, na.action = na.pass),
+    ~randA,
+    model.frame(~randA, dat, na.action = na.pass),
     contrasts = list(randA = ctr)
   )
   # If not randomised to A
   XA[is.na(XA[, 2]), ] <- 0
   colnames(XA)[1] <- "randA"
-  if(all(XA[, "randA"] == 1)) {
+  if (all(XA[, "randA"] == 1)) {
     cX <- attr(XA, "contrasts")$randA
     XA <- XA[, -1, drop = FALSE]
     attributes(XA)$contrasts <- list("randA" = cX)
@@ -58,14 +58,14 @@ make_domA_design <- function(dat, ctr = contr.equalprior) {
 #' @export
 make_domC_design <- function(dat, ctr = contr.equalprior) {
   XC <- model.matrix(
-    ~ randC,
-    model.frame(~ randC, dat, na.action = na.pass),
+    ~randC,
+    model.frame(~randC, dat, na.action = na.pass),
     contrasts = list(randC = ctr)
   )
   # If not randomised to A
   XC[is.na(XC[, 2]), ] <- 0
   colnames(XC)[1] <- "randC"
-  if(all(XC[, "randC"] == 1)) {
+  if (all(XC[, "randC"] == 1)) {
     cX <- attr(XC, "contrasts")$randC
     XC <- XC[, -1, drop = FALSE]
     attributes(XC)$contrasts <- list("randC" = cX)
@@ -103,26 +103,24 @@ make_X_trt_design <- function(dat, ctr = contr.equalprior) {
 #' @param intercept Include an intercept term
 #' @return A design matrix
 #' @export
-make_X_design <- function(
-    dat,
-    vars = NULL,
-    ctr = contr.equalprior,
-    includeA = TRUE,
-    includeC = TRUE,
-    intercept = TRUE) {
-
+make_X_design <- function(dat,
+                          vars = NULL,
+                          ctr = contr.equalprior,
+                          includeA = TRUE,
+                          includeC = TRUE,
+                          intercept = TRUE) {
   if (is.null(vars) & !(includeA | includeC | intercept)) error("No variables included.")
-  if(intercept) {
+  if (intercept) {
     X <- cbind(intercept = rep(1, nrow(dat)))
   } else {
     X <- NULL
   }
-  if(includeA) {
+  if (includeA) {
     XA <- make_domA_design(dat, ctr)
   } else {
     XA <- NULL
   }
-  if(includeC) {
+  if (includeC) {
     XC <- make_domC_design(dat, ctr)
   } else {
     XC <- NULL
@@ -131,15 +129,15 @@ make_X_design <- function(
     Xother <- model.matrix(
       as.formula(paste(" ~ ", paste(vars, collapse = " + "))),
       data = dat
-    ) [, -1, drop = FALSE]
+    )[, -1, drop = FALSE]
   } else {
     Xother <- NULL
   }
   X <- cbind(X, XA, XC, Xother)
-  if(includeA) {
+  if (includeA) {
     attributes(X)$contrasts <- list("randA" = attr(XA, "contrasts")$randA)
   }
-  if(includeC) {
+  if (includeC) {
     attributes(X)$contrasts <- c(attributes(X)$contrasts, list("randC" = attr(XC, "contrasts")$randC))
   }
   # attributes(X)$contrasts <- list(
@@ -162,19 +160,17 @@ make_X_design <- function(
 #' @param .. Other args
 #' @return A list of data for use with Stan model
 #' @export
-make_primary_model_data <- function(
-    dat,
-    vars = c("inelgc3", "agegte60", "ctry"),
-    beta_sd_int = 2.5,
-    beta_sd_var = c(10, 2.5, 1, 1),
-    beta_sd_trt = 1,
-    ctr = contr.equalprior,
-    ...) {
-
+make_primary_model_data <- function(dat,
+                                    vars = c("inelgc3", "agegte60", "ctry"),
+                                    beta_sd_int = 2.5,
+                                    beta_sd_var = c(10, 2.5, 1, 1),
+                                    beta_sd_trt = 1,
+                                    ctr = contr.equalprior,
+                                    ...) {
   X <- make_X_design(dat, vars = vars, ctr = ctr, ...)
   nXtrt <- sum(grepl("rand", colnames(X)))
-  epoch  <- dat[["epoch"]]
-  M_epoch  <- max(epoch)
+  epoch <- dat[["epoch"]]
+  M_epoch <- max(epoch)
   region <- dat[["ctry_num"]]
   M_region <- max(region)
   site <- dat[["site_num"]]
@@ -213,17 +209,24 @@ make_primary_model_data <- function(
 #' @param seed Seed
 #' @param ... Other arguments
 #' @export
-fit_primary_model <- function(
-  dat = NULL,
-  model = NULL,
-  vars =  c("inelgc3", "agegte60", "ctry"),
-  beta_sd_int = 2.5,
-  beta_sd_var = c(10, 2.5, 1, 1),
-  beta_sd_trt = 1,
-  ctr = contr.equalprior,
-  seed = 32915,
-  ...) {
-  mdat <- make_primary_model_data(dat, beta_sd_int = beta_sd_int, beta_sd_var = beta_sd_var, beta_sd_trt = beta_sd_trt, ctr = ctr)
+fit_primary_model <- function(dat = NULL,
+                              model = NULL,
+                              vars = c("inelgc3", "agegte60", "ctry"),
+                              beta_sd_int = 2.5,
+                              beta_sd_var = c(10, 2.5, 1, 1),
+                              beta_sd_trt = 1,
+                              ctr = contr.equalprior,
+                              seed = 32915,
+                              ...) {
+  mdat <- make_primary_model_data(
+    dat,
+    vars = vars,
+    beta_sd_int = beta_sd_int,
+    beta_sd_var = beta_sd_var,
+    beta_sd_trt = beta_sd_trt,
+    ctr = ctr,
+    ...
+  )
   snk <- capture.output(
     mfit <- model[["sample"]](
       data = mdat,
@@ -233,16 +236,17 @@ fit_primary_model <- function(
       iter_sampling = 2500,
       chains = 8,
       parallel_chains = min(8, parallel::detectCores())
-    ))
+    )
+  )
   mpars <- mfit$metadata()$model_params
   keep <- mpars[!grepl("(_raw|epsilon_)", mpars)]
   mdrws <- as_draws_rvars(mfit$draws(keep))
   names(mdrws$beta) <- colnames(mdat$X)
-  if(any(grepl("site", keep))) {
+  if (any(grepl("site", keep))) {
     site_map <- dat %>% dplyr::count(site_num, site)
     names(mdrws$gamma_site) <- site_map$site
   }
-  if(any(grepl("epoch", keep))) {
+  if (any(grepl("epoch", keep))) {
     epoch_map <- dat %>% dplyr::count(epoch, epoch_lab)
     names(mdrws$gamma_epoch) <- epoch_map$epoch_lab
   }
