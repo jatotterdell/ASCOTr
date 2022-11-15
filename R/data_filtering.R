@@ -270,7 +270,7 @@ make_fas_itt_set <- function(dat) {
       ) - 5
     ) |>
     group_by(epoch) |>
-    mutate(epoch_raw_lab = paste(
+    mutate(epoch_lab = paste(
       format(min(RandDate), "%d%b%y"),
       format(max(RandDate), "%d%b%y"),
       sep = "-"
@@ -301,7 +301,7 @@ make_acs_itt_set <- function(dat) {
       ) - 1
     ) |>
     group_by(epoch) |>
-    mutate(epoch_raw_lab = paste(
+    mutate(epoch_lab = paste(
       format(min(RandDate), "%d%b%y"),
       format(max(RandDate), "%d%b%y"),
       sep = "-"
@@ -334,7 +334,7 @@ make_avs_itt_set <- function(dat) {
       ) - 5
     ) |>
     group_by(epoch) |>
-    mutate(epoch_raw_lab = paste(
+    mutate(epoch_lab = paste(
       format(min(RandDate), "%d%b%y"),
       format(max(RandDate), "%d%b%y"),
       sep = "-"
