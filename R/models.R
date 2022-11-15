@@ -33,7 +33,9 @@ make_domA_design <- function(dat, ctr = contr.equalprior) {
   XA[is.na(XA[, 2]), ] <- 0
   colnames(XA)[1] <- "randA"
   if(all(XA[, "randA"] == 1)) {
+    cX <- attr(XA, "contrasts")$randA
     XA <- XA[, -1, drop = FALSE]
+    attributes(XA)$contrasts <- list("randA" = cX)
   }
   return(XA)
 }
