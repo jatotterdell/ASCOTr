@@ -32,6 +32,9 @@ make_domA_design <- function(dat, ctr = contr.equalprior) {
   # If not randomised to A
   XA[is.na(XA[, 2]), ] <- 0
   colnames(XA)[1] <- "randA"
+  if(all(XA[, "randA"] == 1)) {
+    XA <- XA[, -1, drop = FALSE]
+  }
   return(XA)
 }
 
@@ -60,6 +63,11 @@ make_domC_design <- function(dat, ctr = contr.equalprior) {
   # If not randomised to A
   XC[is.na(XC[, 2]), ] <- 0
   colnames(XC)[1] <- "randC"
+  if(all(XC[, "randC"] == 1)) {
+    cX <- attr(XC, "contrasts")$randC
+    XC <- XC[, -1, drop = FALSE]
+    attributes(XC)$contrasts <- list("randC" = cX)
+  }
   return(XC)
 }
 
@@ -126,10 +134,16 @@ make_X_design <- function(
     Xother <- NULL
   }
   X <- cbind(X, XA, XC, Xother)
-  attributes(X)$contrasts <- list(
-    "randA" = attr(XA, "contrasts")$randA,
-    "randC" = attr(XC, "contrasts")$randC
-  )
+  if(includeA) {
+    attributes(X)$contrasts <- list("randA" = attr(XA, "contrasts")$randA)
+  }
+  if(includeC) {
+    attributes(X)$contrasts <- c(attributes(X)$contrasts, list("randC" = attr(XC, "contrasts")$randC))
+  }
+  # attributes(X)$contrasts <- list(
+  #   "randA" = attr(XA, "contrasts")$randA,
+  #   "randC" = attr(XC, "contrasts")$randC
+  # )
   return(X)
 }
 
@@ -156,7 +170,7 @@ make_primary_model_data <- function(
     ...) {
 
   X <- make_X_design(dat, vars = vars, ctr = ctr, ...)
-  nXtrt <- sum(grepl("rand", colnames(X))) - any(grepl("intercept", colnames(X)))
+  nXtrt <- sum(grepl("rand", colnames(X)))
   epoch  <- dat[["epoch"]]
   M_epoch  <- max(epoch)
   region <- dat[["ctry_num"]]
@@ -181,4 +195,123 @@ make_primary_model_data <- function(
     ctrC = attr(X, "contrasts")[["randC"]]
   )
   return(out)
+}
+
+
+#' @title Fit primary model
+#' @description
+#' Creates Stan dataset, samples from the model, and generates summaries
+#' @param dat Dataset (e.g. output from `make_fas_itt_set`)
+#' @param model Stan model
+#' @param vars Covariates to include
+#' @param beta_sd_int Prior SD for intercept
+#' @param beta_sd_var Prior SD for vars
+#' @param beta_sd_trt Prior SD for treatments
+#' @param ctr Contrast for treatment design
+#' @param seed Seed
+#' @param ... Other arguments
+#' @export
+fit_primary_model <- function(
+  dat = NULL,
+  model = NULL,
+  vars =  c("inelgc3", "agegte60", "ctry"),
+  beta_sd_int = 2.5,
+  beta_sd_var = c(10, 2.5, 1, 1),
+  beta_sd_trt = 1,
+  ctr = contr.equalprior,
+  seed = 32915,
+  ...) {
+  mdat <- make_primary_model_data(dat, beta_sd_int = beta_sd_int, beta_sd_var = beta_sd_var, beta_sd_trt = beta_sd_trt, ctr = ctr)
+  snk <- capture.output(
+    mfit <- model[["sample"]](
+      data = mdat,
+      seed = seed,
+      refresh = 0,
+      iter_warmup = 1000,
+      iter_sampling = 2500,
+      chains = 8,
+      parallel_chains = min(8, parallel::detectCores())
+    ))
+  mpars <- mfit$metadata()$model_params
+  keep <- mpars[!grepl("(_raw|epsilon_)", mpars)]
+  mdrws <- as_draws_rvars(mfit$draws(keep))
+  names(mdrws$beta) <- colnames(mdat$X)
+  if(any(grepl("site", keep))) {
+    site_map <- dat %>% dplyr::count(site_num, site)
+    names(mdrws$gamma_site) <- site_map$site
+  }
+  if(any(grepl("epoch", keep))) {
+    epoch_map <- dat %>% dplyr::count(epoch, epoch_lab)
+    names(mdrws$gamma_epoch) <- epoch_map$epoch_lab
+  }
+  # Transformed samples
+  Ca <- mdat$ctrA
+  Cc <- mdat$ctrC
+  # Get constrained parameters from contrast transformation
+  mdrws$Acon <- as.vector(Ca %**% mdrws$beta[grepl("randA[0-9]", names(mdrws$beta))])
+  mdrws$Ccon <- as.vector(Cc %**% mdrws$beta[grepl("randC[0-9]", names(mdrws$beta))])
+  names(mdrws$Acon) <- rownames(Ca)
+  names(mdrws$Ccon) <- rownames(Cc)
+  mdrws$Atrt <- mdrws$Acon[-1] - mdrws$Acon[1]
+  mdrws$Ctrt <- mdrws$Ccon[-1] - mdrws$Ccon[1]
+  mdrws$AOR <- exp(mdrws$Atrt)
+  mdrws$COR <- exp(mdrws$Ctrt)
+  mdrws$OR <- exp(mdrws$beta[!grepl("(Intercept|rand)", names(mdrws$beta))])
+  return(list(dat = mdat, fit = mfit, drws = mdrws))
+}
+
+
+#' @title Plot epoch term posterior summaries
+#' @param  rvs_epoch Epoch RVs
+#' @return A ggplot
+#' @export
+plot_epoch_terms <- function(rvs_epoch) {
+  orsdat <- tibble(
+    Group = "Epoch",
+    Parameter = fct_inorder(names(rvs_epoch)),
+    posterior = rvs_epoch
+  )
+  p_epoch <- ggplot(orsdat, aes(xdist = posterior, y = Parameter)) +
+    stat_pointinterval(.width = c(0.75, 0.95), fatten_point = 1.5) +
+    geom_vline(xintercept = 1, linetype = 2) +
+    scale_x_log10("Odds ratio (log scale)") +
+    labs(y = "Epoch")
+  return(p_epoch)
+}
+
+
+#' @title Plot site term posterior summaries
+#' @param rvs_site Site RVs
+#' @param region Site region groupings
+#' @return A ggplot
+#' @export
+plot_site_terms <- function(rvs_site, region) {
+  orsdat <- tibble(
+    Group = "Site",
+    Country = region,
+    Parameter = fct_inorder(names(rvs_site)),
+    posterior = rvs_site
+  )
+  p_site <- ggplot(orsdat, aes(xdist = posterior, y = Parameter)) +
+    facet_grid(Country ~ ., scales = "free_y", space = "free_y") +
+    stat_pointinterval(.width = c(0.75, 0.95), fatten_point = 1.5) +
+    geom_vline(xintercept = 1, linetype = 2) +
+    scale_x_log10("Odds ratio (log scale)") +
+    labs(y = "Site") +
+    theme(panel.border = element_rect(fill = NA))
+  return(p_site)
+}
+
+
+#' @title Plot site and epoch terms posterior summaries in one figure
+#' @param rvs_epoch Epoch RVs
+#' @param rvs_site Site RVs
+#' @param region Site region groupings
+#' @return A ggplot
+#' @export
+plot_epoch_site_terms <- function(rvs_epoch, rvs_site, region) {
+  p_epoch <- plot_epoch_terms(rvs_epoch)
+  p_site <- plot_site_terms(rvs_site, region)
+  p <- p_epoch | p_site
+  p
 }
