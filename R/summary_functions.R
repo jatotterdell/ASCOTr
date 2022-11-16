@@ -112,6 +112,7 @@ generate_baseline_demographics_table <- function(dat, format = "html") {
   fsize <- 12
   if (format == "latex") {
     fsize <- 9
+    colnames(tabA) <- linebreak(colnames(tabA), linebreaker = "<br>", align = "c")
     colnames(tabC) <- linebreak(colnames(tabC), linebreaker = "<br>", align = "c")
   }
   outA <- kable(
@@ -870,4 +871,40 @@ generate_discharge_drugs_table <- function(dat, format = "html") {
     row_spec(0, align = "c") %>%
     add_header_above(c(" " = 1, "Anticoagulation" = ncol(bygrpC) - 1, " " = 1))
   return(list(A = outA, C = outC))
+}
+
+
+#' @title Interevention assignment table
+#' @param dat Dataset with `PO`, `AAssignment`, and `CAssignment`.
+#' @return Tibble of intervention assignment summary
+#' @export
+make_intervention_table <- function(dat) {
+  sdat <- dat |>
+    transmute(
+      PO,
+      WTH_FU,
+      Antiviral = factor(AAssignment, levels = c("A0", "A1", "A2"), labels = intervention_labels_short()$AAssignment),
+      Anticoagulation = factor(CAssignment, levels = c("C0", "C1", "C2", "C3", "C4"),labels = intervention_labels_short()$CAssignment)
+    )
+  Adat <- sdat |>
+    group_by(Antiviral, Anticoagulation = "Total") |>
+    summarise(n = sprintf("%i (%i)", n(), sum(is.na(PO) | WTH_FU == 1)), .groups = "drop") |>
+    bind_rows(
+      sdat |>
+        summarise(Antiviral = "Total", Anticoagulation = "Total", n = sprintf("%i (%i)", n(), sum(is.na(PO) | WTH_FU == 1)), .groups = "drop")
+    ) |>
+    spread(Antiviral, n)
+  Cdat <- sdat |>
+    group_by(Anticoagulation) |>
+    summarise(Total = sprintf("%i (%i)", n(), sum(is.na(PO) | WTH_FU == 1)), .groups = "drop")
+  ACdat <- sdat |>
+    group_by(Antiviral, Anticoagulation) |>
+    summarise(
+      n = sprintf("%i (%i)", n(), sum(is.na(PO) | WTH_FU == 1)), .groups = "drop"
+    ) |>
+    spread(Antiviral, n, fill = "0 (0)")
+  ACdat <- ACdat |>
+    left_join(Cdat, by = "Anticoagulation") |>
+    bind_rows(Adat)
+  return(ACdat)
 }

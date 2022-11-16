@@ -62,10 +62,11 @@ make_domC_design <- function(dat, ctr = contr.equalprior) {
     model.frame(~randC, dat, na.action = na.pass),
     contrasts = list(randC = ctr)
   )
-  # If not randomised to A
-  XC[is.na(XC[, 2]), ] <- 0
+  # If not randomised to C
+  XC[, 1] <- 0
+  XC[is.na(XC[, 2]), ] <- 1
   colnames(XC)[1] <- "randC"
-  if (all(XC[, "randC"] == 1)) {
+  if (all(XC[, "randC"] == 0)) {
     cX <- attr(XC, "contrasts")$randC
     XC <- XC[, -1, drop = FALSE]
     attributes(XC)$contrasts <- list("randC" = cX)
@@ -231,6 +232,7 @@ fit_primary_model <- function(dat = NULL,
     mfit <- model[["sample"]](
       data = mdat,
       seed = seed,
+      adapt_delta = 0.95,
       refresh = 0,
       iter_warmup = 1000,
       iter_sampling = 2500,

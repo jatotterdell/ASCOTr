@@ -99,8 +99,8 @@ get_intervention_dates <- function() {
     "Anticoagulation", "C2", as.Date("2021-02-18"), as.Date("2022-04-08"),
     "Anticoagulation", "C3", as.Date("2021-02-18"), as.Date("2021-09-10"),
     "Anticoagulation", "C4", as.Date("2021-10-14"), as.Date("2022-04-08"),
-    "Antiviral", "A1", as.Date("2021-06-10"), as.Date("2022-04-09"),
-    "Antiviral", "A2", as.Date("2021-06-10"), as.Date("2022-04-09")
+    "Antiviral", "A1", as.Date("2021-06-10"), as.Date("2022-08-04"),
+    "Antiviral", "A2", as.Date("2021-06-10"), as.Date("2022-08-04")
   ) %>%
     mutate(Intervention = labelled(
       Intervention,
