@@ -6,12 +6,12 @@
 intervention_labels <- function() {
   list(
     AAssignment = c(
-      "A0" = "Not randomised to antiviral",
-      "A1" = "No specific antiviral",
-      "A2" = "Nafamostat"
+      "A0" = "Not randomised<br>to antiviral",
+      "A1" = "Standard<br>of care",
+      "A2" = "Nafamostat<br>"
     ),
     CAssignment = c(
-      "C0" = "Not randomised to anticoagulation",
+      "C0" = "Not randomised<br>to anticoagulation",
       "C1" = "Low<br>dose",
       "C2" = "Intermediate<br>dose",
       "C3" = "Low dose<br>with aspirin",
@@ -30,7 +30,7 @@ intervention_labels2 <- function() {
   list(
     AAssignment = c(
       "A0" = "Not randomised to antiviral",
-      "A1" = "No specific antiviral",
+      "A1" = "Standard of care",
       "A2" = "Nafamostat"
     ),
     CAssignment = c(
