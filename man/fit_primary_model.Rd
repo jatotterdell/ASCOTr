@@ -13,6 +13,9 @@ fit_primary_model(
   beta_sd_trt = 1,
   ctr = contr.equalprior,
   seed = 32915,
+  adapt_delta = 0.99,
+  iter_sampling = 2500,
+  chains = 8,
   ...
 )
 }

@@ -4,7 +4,7 @@
 \alias{plot_epoch_terms}
 \title{Plot epoch term posterior summaries}
 \usage{
-plot_epoch_terms(rvs_epoch)
+plot_epoch_terms(rvs_epoch, xlab = "Change in log-odds")
 }
 \arguments{
 \item{rvs_epoch}{Epoch RVs}

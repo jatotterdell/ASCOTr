@@ -2,6 +2,7 @@
 #' Compile provided cumulative logistic Stan model for cmdstanr.
 #' @param mod_name The model name
 #' @return A `CmdStanModel` object
+#' @export
 #' @importFrom cmdstanr cmdstan_model
 compile_cmdstanr_mod <- function(mod_name, ...) {
   cmdstanr::cmdstan_model(stan_file = system.file("stan", paste0(mod_name, ".stan"), package = "ASCOTr"), ... = ...)
@@ -64,7 +65,10 @@ make_domC_design <- function(dat, ctr = contr.equalprior) {
   )
   # If not randomised to C
   XC[, 1] <- 0
-  XC[is.na(XC[, 2]), ] <- 1
+  flg <- is.na(XC[, 2])
+  XC[flg, -1] <- 0
+  XC[flg, 1] <- 1
+
   colnames(XC)[1] <- "randC"
   if (all(XC[, "randC"] == 0)) {
     cX <- attr(XC, "contrasts")$randC
@@ -218,6 +222,9 @@ fit_primary_model <- function(dat = NULL,
                               beta_sd_trt = 1,
                               ctr = contr.equalprior,
                               seed = 32915,
+                              adapt_delta = 0.99,
+                              iter_sampling = 2500,
+                              chains = 8,
                               ...) {
   mdat <- make_primary_model_data(
     dat,
@@ -232,12 +239,12 @@ fit_primary_model <- function(dat = NULL,
     mfit <- model[["sample"]](
       data = mdat,
       seed = seed,
-      adapt_delta = 0.95,
+      adapt_delta = adapt_delta,
       refresh = 0,
       iter_warmup = 1000,
-      iter_sampling = 2500,
-      chains = 8,
-      parallel_chains = min(8, parallel::detectCores())
+      iter_sampling = iter_sampling,
+      chains = chains,
+      parallel_chains = min(chains, parallel::detectCores())
     )
   )
   mpars <- mfit$metadata()$model_params
@@ -273,7 +280,7 @@ fit_primary_model <- function(dat = NULL,
 #' @param  rvs_epoch Epoch RVs
 #' @return A ggplot
 #' @export
-plot_epoch_terms <- function(rvs_epoch) {
+plot_epoch_terms <- function(rvs_epoch, xlab = "Change in log-odds") {
   orsdat <- tibble(
     Group = "Epoch",
     Parameter = fct_inorder(names(rvs_epoch)),
@@ -281,9 +288,8 @@ plot_epoch_terms <- function(rvs_epoch) {
   )
   p_epoch <- ggplot(orsdat, aes(xdist = posterior, y = Parameter)) +
     stat_pointinterval(.width = c(0.75, 0.95), fatten_point = 1.5) +
-    geom_vline(xintercept = 1, linetype = 2) +
-    scale_x_log10("Odds ratio (log scale)") +
-    labs(y = "Epoch")
+    geom_vline(xintercept = 0, linetype = 2) +
+    labs(y = "Epoch", x = xlab)
   return(p_epoch)
 }
 
@@ -293,7 +299,7 @@ plot_epoch_terms <- function(rvs_epoch) {
 #' @param region Site region groupings
 #' @return A ggplot
 #' @export
-plot_site_terms <- function(rvs_site, region) {
+plot_site_terms <- function(rvs_site, region, xlab = "Change in log-odds") {
   orsdat <- tibble(
     Group = "Site",
     Country = region,
@@ -303,9 +309,8 @@ plot_site_terms <- function(rvs_site, region) {
   p_site <- ggplot(orsdat, aes(xdist = posterior, y = Parameter)) +
     facet_grid(Country ~ ., scales = "free_y", space = "free_y") +
     stat_pointinterval(.width = c(0.75, 0.95), fatten_point = 1.5) +
-    geom_vline(xintercept = 1, linetype = 2) +
-    scale_x_log10("Odds ratio (log scale)") +
-    labs(y = "Site") +
+    geom_vline(xintercept = 0, linetype = 2) +
+    labs(y = "Site", x = xlab) +
     theme(panel.border = element_rect(fill = NA))
   return(p_site)
 }
@@ -317,9 +322,122 @@ plot_site_terms <- function(rvs_site, region) {
 #' @param region Site region groupings
 #' @return A ggplot
 #' @export
-plot_epoch_site_terms <- function(rvs_epoch, rvs_site, region) {
-  p_epoch <- plot_epoch_terms(rvs_epoch)
-  p_site <- plot_site_terms(rvs_site, region)
+plot_epoch_site_terms <- function(rvs_epoch, rvs_site, region, xlab = "Change in log-odds") {
+  p_epoch <- plot_epoch_terms(rvs_epoch, xlab)
+  p_site <- plot_site_terms(rvs_site, region, xlab)
   p <- p_epoch | p_site
   p
+}
+
+
+#' @title Plot OR densities
+#' @param rvs RV of ORs
+#' @return A ggplot2
+#' @export
+plot_or_densities <- function(rvs) {
+  tibble(Contrast = fct_inorder(names(rvs)), RV = rvs) %>%
+    ggplot(., aes(y = Contrast, xdist = RV)) +
+    stat_halfeye(
+      aes(fill =
+            after_stat(cut_cdf_qi(
+              cdf,
+              .width = c(.5, .8, .95, 0.99),
+              labels = scales::percent_format()))),
+      adjust = 1, n = 1001, .width = c(0.5, 0.8, 0.95)
+    ) +
+    scale_fill_brewer(
+      palette = "Reds",
+      direction = -1,
+      na.translate = FALSE) +
+    labs(
+      x = "Odds ratio contrast",
+      fill = "Interval"
+    ) +
+    scale_x_log10(breaks = c(0.1, 0.25, 0.5, 1, 2, 4, 10)) +
+    geom_vline(xintercept = 1)
+}
+
+
+#' @title Create odds ratio summary table
+#' @param OR Odds ratio RV
+#' @param format Table format
+#' @param fn Filename
+#' @return Table if fn is NULL, otherwise save the table
+#' @export
+odds_ratio_summary_table <- function(OR, format = "html", fn = NULL) {
+  out <- tibble(
+    Parameter = names(OR),
+    Median = median(OR),
+    `95% CrI` = apply(
+      quantile(OR, c(0.025, 0.975)), 2,
+      function(x) sprintf("(%.2f, %.2f)", x[1], x[2])),
+    `Mean (SD)` = sprintf("%.2f (%.2f)", E(OR), sd(OR)),
+    `Pr(OR < 1)` = Pr(OR < 1),
+  ) %>%
+    kable(
+      format = format,
+      digits = 2,
+      align = "lrrrr",
+      linesep = "",
+      booktabs = TRUE) %>%
+    kable_styling(
+      font_size = 9,
+      bootstrap_options = "striped",
+      latex_options = "HOLD_position")
+  if (!is.null(fn) & format == "latex") {
+    save_tex_table(out, fn)
+  } else {
+    return(out)
+  }
+}
+
+
+#' @title Summarise a posterior
+#' @param dat Dataset with column `Posterior` of type `rvar`.
+#' @param futval Futility reference value
+#' @return A tibble of posterior summaries
+#' @export
+summarise_posterior <- function(dat, futval = 1.1) {
+  dat %>%
+    mutate(
+      Median =
+        sprintf("%.2f", median(Posterior)),
+      `95\\% CrI` =
+        sprintf("(%.2f, %.2f)", quantile(Posterior, 0.025), quantile(Posterior, 0.975)),
+      `Mean (SD)` =
+        sprintf("%.2f (%.2f)", mean(Posterior), sd(Posterior)),
+      `Pr(OR < 1)` =
+        sprintf("%.2f", Pr(Posterior < 1)),
+      `Pr(OR > 1/1.1)` =
+        sprintf("%.2f", Pr(Posterior > 1/futval))
+    )
+}
+
+
+#' @title Summarise decision quantities
+#' @param OR RVs
+#' @param format Table format
+#' @param fut_val Futility reference value
+#' @return A tibble
+#' @export
+decision_quantity_summary_table <- function(OR, format = "html", fut_val = 1.1) {
+  tdat <- tibble(
+    Intervention = names(OR),
+    posterior = OR,
+    Posterior = sprintf("%.2f (%.2f, %.2f)",
+                        median(posterior),
+                        quantile(posterior, 0.025),
+                        quantile(posterior, 0.975)),
+    `Superior\nPr(OR = min(OR))` = sprintf("%.2f", E(posterior == rvar_min(posterior))),
+    `Effective\nPr(OR < 1)` = sprintf("%.2f", Pr(posterior < 1)),
+    `Futile\nPr(OR > 1/1.1)` = sprintf("%.2f", Pr(posterior > 1/fut_val)),
+    `Equivalent\nPr(1/1.1 < OR < 1.1)` = sprintf("%.2f", Pr(posterior < fut_val & posterior > 1/fut_val))
+  ) %>%
+    select(-posterior)
+  tdat[1, 2] <- "1.00"
+  tdat[1, -(1:3)] <- "-"
+  if(format == "latex") {
+    colnames(tdat) <- linebreak(colnames(tdat), align = "c", linebreaker = "\n")
+  }
+  return(tdat)
 }

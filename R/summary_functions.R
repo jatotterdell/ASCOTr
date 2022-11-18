@@ -682,7 +682,7 @@ generate_baseline_prognostics_table <- function(dat, format = "html") {
     kable(
       format = format,
       booktabs = TRUE,
-      longtable = TRUE,
+      longtable = F,
       escape = F,
       linesep = "",
       caption = "Baseline prognostic variables for participants randomised into domain C.",
@@ -700,7 +700,7 @@ generate_baseline_prognostics_table <- function(dat, format = "html") {
     kable(
       format = format,
       booktabs = TRUE,
-      longtable = TRUE,
+      longtable = F,
       escape = F,
       linesep = "",
       caption = "Baseline prognostic variables for participants randomised into domain C.",

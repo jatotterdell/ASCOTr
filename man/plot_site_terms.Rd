@@ -4,7 +4,7 @@
 \alias{plot_site_terms}
 \title{Plot site term posterior summaries}
 \usage{
-plot_site_terms(rvs_site, region)
+plot_site_terms(rvs_site, region, xlab = "Change in log-odds")
 }
 \arguments{
 \item{rvs_site}{Site RVs}
