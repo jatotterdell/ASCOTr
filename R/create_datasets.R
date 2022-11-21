@@ -242,6 +242,36 @@ add_oxygen <- function(dat) {
 }
 
 
+#' @title add_supplemental_oxygen
+#' @description
+#' Add requirement of supplemental oxygen at baseline
+#' Per email from Steve:
+#' For the baseline status, we have that initial question regarding ‘Was the patient on room air for any of the preceding 24 hours?’
+#' If no – they needed supplemental oxygen.
+#' If yes – the next Q can be used – if O2 saturation <94%, then we code as needing supplemental O2. If ≥94%, then we code as NOT needing supplemental oxygen.
+#' @param dat Dataset containing relevant variables
+#' @return Returns dat with new variables.
+add_supplemental_oxygen <- function(dat) {
+  dat %>%
+    mutate(
+      # Note one subject is outlier with Oxygen saturation of 10%
+      BAS_PeripheralOxygen = if_else(
+        BAS_PeripheralOxygen < 10 | is.na(BAS_PeripheralOxygen),
+        NA_real_,
+        BAS_PeripheralOxygen
+      ),
+      supp_oxy = case_when(
+        BAS_OnRoomAir24hrs == "No" ~ 1,
+        BAS_OnRoomAir24hrs == "Yes" & BAS_PeripheralOxygen < 94 ~ 1,
+        BAS_OnRoomAir24hrs == "Yes" & BAS_PeripheralOxygen >= 94 ~ 0,
+        BAS_OnRoomAir24hrsUnknown == "Yes" ~ NA_real_,
+        is.na(BAS_PeripheralOxygen) ~ NA_real_,
+        TRUE ~ 0
+      )
+    )
+}
+
+
 #' @title add_primary_outcome
 #' @description Add the derived primary outcome for each participant.
 #' @param dat Dataset with one record per participant with their outcomes
@@ -584,12 +614,13 @@ format_baseline_data <- function(bas) {
         BAS_OnRoomAir24hrs == "No" ~ NA_real_,
         TRUE ~ BAS_PeripheralOxygen
       ),
-      # If "Unknown" thet set to missing
+      # If "Unknown" then set to missing
       BAS_OnRoomAir24hrs = case_when(
         BAS_OnRoomAir24hrsUnknown == "Yes" ~ NA_character_,
         TRUE ~ BAS_OnRoomAir24hrs
       )
-    )
+    ) |>
+    add_supplemental_oxygen()
 }
 
 
