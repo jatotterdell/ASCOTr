@@ -171,8 +171,10 @@ make_primary_model_data <- function(dat,
                                     beta_sd_var = c(10, 2.5, 1, 1),
                                     beta_sd_trt = 1,
                                     ctr = contr.equalprior,
+                                    includeA = TRUE,
+                                    includeC = TRUE,
                                     ...) {
-  X <- make_X_design(dat, vars = vars, ctr = ctr, ...)
+  X <- make_X_design(dat, vars = vars, ctr = ctr, includeA = includeA, includeC = includeC)
   nXtrt <- sum(grepl("rand", colnames(X)))
   epoch <- dat[["epoch"]]
   M_epoch <- max(epoch)
@@ -193,10 +195,14 @@ make_primary_model_data <- function(dat,
     M_site = M_site, site = site,
     M_epoch = M_epoch, epoch = epoch,
     region_by_site = region_by_site,
-    beta_sd = beta_sd,
-    ctrA = attr(X, "contrasts")[["randA"]],
-    ctrC = attr(X, "contrasts")[["randC"]]
+    beta_sd = beta_sd
   )
+  if (includeA) {
+    out <- c(out, list(ctrA = attr(X, "contrasts")[["randA"]]))
+  }
+  if (includeC) {
+    out <- c(out, list(ctrC = attr(X, "contrasts")[["randC"]]))
+  }
   return(out)
 }
 
@@ -216,11 +222,13 @@ make_primary_model_data <- function(dat,
 #' @export
 fit_primary_model <- function(dat = NULL,
                               model = NULL,
-                              vars = c("inelgc3", "agegte60", "ctry"),
+                              vars = c("inelgc3", "agegte60", "supp_oxy2", "ctry"),
                               beta_sd_int = 2.5,
-                              beta_sd_var = c(10, 2.5, 1, 1),
+                              beta_sd_var = c(10, 2.5, 2.5, 1, 1),
                               beta_sd_trt = 1,
                               ctr = contr.equalprior,
+                              includeA = TRUE,
+                              includeC = TRUE,
                               seed = 32915,
                               adapt_delta = 0.99,
                               iter_sampling = 2500,
@@ -233,6 +241,8 @@ fit_primary_model <- function(dat = NULL,
     beta_sd_var = beta_sd_var,
     beta_sd_trt = beta_sd_trt,
     ctr = ctr,
+    includeA = includeA,
+    includeC = includeC,
     ...
   )
   snk <- capture.output(
@@ -259,18 +269,21 @@ fit_primary_model <- function(dat = NULL,
     epoch_map <- dat %>% dplyr::count(epoch, epoch_lab)
     names(mdrws$gamma_epoch) <- epoch_map$epoch_lab
   }
-  # Transformed samples
-  Ca <- mdat$ctrA
-  Cc <- mdat$ctrC
-  # Get constrained parameters from contrast transformation
-  mdrws$Acon <- as.vector(Ca %**% mdrws$beta[grepl("randA[0-9]", names(mdrws$beta))])
-  mdrws$Ccon <- as.vector(Cc %**% mdrws$beta[grepl("randC[0-9]", names(mdrws$beta))])
-  names(mdrws$Acon) <- rownames(Ca)
-  names(mdrws$Ccon) <- rownames(Cc)
-  mdrws$Atrt <- mdrws$Acon[-1] - mdrws$Acon[1]
-  mdrws$Ctrt <- mdrws$Ccon[-1] - mdrws$Ccon[1]
-  mdrws$AOR <- exp(mdrws$Atrt)
-  mdrws$COR <- exp(mdrws$Ctrt)
+
+  if(includeA) {
+    Ca <- mdat$ctrA
+    mdrws$Acon <- as.vector(Ca %**% mdrws$beta[grepl("randA[0-9]", names(mdrws$beta))])
+    names(mdrws$Acon) <- rownames(Ca)
+    mdrws$Atrt <- mdrws$Acon[-1] - mdrws$Acon[1]
+    mdrws$AOR <- exp(mdrws$Atrt)
+  }
+  if (includeC) {
+    Cc <- mdat$ctrC
+    mdrws$Ccon <- as.vector(Cc %**% mdrws$beta[grepl("randC[0-9]", names(mdrws$beta))])
+    names(mdrws$Ccon) <- rownames(Cc)
+    mdrws$Ctrt <- mdrws$Ccon[-1] - mdrws$Ccon[1]
+    mdrws$COR <- exp(mdrws$Ctrt)
+  }
   mdrws$OR <- exp(mdrws$beta[!grepl("(Intercept|rand)", names(mdrws$beta))])
   return(list(dat = mdat, fit = mfit, drws = mdrws))
 }

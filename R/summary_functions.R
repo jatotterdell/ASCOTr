@@ -654,7 +654,7 @@ generate_baseline_prognostics_table <- function(dat, format = "html") {
   tabC <- left_join(ovrC, byCgrp, by = "Variable")[, c(1, (2 + 1:(ncol(byCgrp) - 1)), 2)]
   fsize <- 12
   if (format == "latex") {
-    fsize <- 9
+    fsize <- 8
     colnames(tabA) <- linebreak(colnames(tabA), linebreaker = "<br>", align = "c")
     colnames(tabC) <- linebreak(colnames(tabC), linebreaker = "<br>", align = "c")
   }

@@ -267,7 +267,8 @@ add_supplemental_oxygen <- function(dat) {
         BAS_OnRoomAir24hrsUnknown == "Yes" ~ NA_real_,
         is.na(BAS_PeripheralOxygen) ~ NA_real_,
         TRUE ~ 0
-      )
+      ),
+      supp_oxy2 = if_else(is.na(supp_oxy), 0, supp_oxy)
     )
 }
 
