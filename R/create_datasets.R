@@ -145,7 +145,6 @@ add_database_corrections <- function(dat) {
           StudyPatientID == "PUN00004" ~ 276,
           TRUE ~ EL_BloodPlateletTestValue
         ),
-
       EL_eGFR =
         case_when(
           StudyPatientID == "PRC00007" ~ 73,

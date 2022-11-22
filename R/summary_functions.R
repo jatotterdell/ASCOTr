@@ -752,16 +752,18 @@ generate_discharge_drugs <- function(dat) {
     ) %>%
     summarise_all(., list(Variable = ~ sprintf("%i (%.0f)", sum(.x == "Yes", na.rm = TRUE), 100 * sum(.x == "Yes", na.rm = TRUE) / n()))) %>%
     pivot_longer(everything()) %>%
-    mutate(name = str_replace(name, "DIS_Received", ""),
-           name = str_replace(name, "DIS_Immuno", ""),
-           name = str_replace(name, "DIS_Iummuno", ""),
-           name = str_replace(name, "Dis_Immuno", ""),
-           name = str_replace(name, "DIS_", ""),
-           name = str_replace(name, "Received_Variable", ""),
-           name = str_replace(name, "_Variable", ""),
-           name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
-           name = str_to_sentence(trimws(name)),
-           name = paste0(name, ", n (\\%)"))
+    mutate(
+      name = str_replace(name, "DIS_Received", ""),
+      name = str_replace(name, "DIS_Immuno", ""),
+      name = str_replace(name, "DIS_Iummuno", ""),
+      name = str_replace(name, "Dis_Immuno", ""),
+      name = str_replace(name, "DIS_", ""),
+      name = str_replace(name, "Received_Variable", ""),
+      name = str_replace(name, "_Variable", ""),
+      name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
+      name = str_to_sentence(trimws(name)),
+      name = paste0(name, ", n (\\%)")
+    )
   colnames(tab) <- c("Drug received", paste0("Overall<br>(n = ", nrow(dat %>% filter(DIS_rec == 1)), ")"))
   return(tab)
 }
@@ -804,16 +806,18 @@ generate_discharge_drugs_by <- function(dat, grpvar = NULL) {
     summarise_all(., list(Variable = ~ sprintf("%i (%.0f)", sum(.x == "Yes", na.rm = TRUE), 100 * sum(.x == "Yes", na.rm = TRUE) / n()))) %>%
     gather(name, value, -!!grpvar, factor_key = TRUE) %>%
     spread(!!grpvar, value) %>%
-    mutate(name = str_replace(name, "DIS_Received", ""),
-           name = str_replace(name, "DIS_Immuno", ""),
-           name = str_replace(name, "DIS_Iummuno", ""),
-           name = str_replace(name, "Dis_Immuno", ""),
-           name = str_replace(name, "DIS_", ""),
-           name = str_replace(name, "Received_Variable", ""),
-           name = str_replace(name, "_Variable", ""),
-           name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
-           name = str_to_sentence(trimws(name)),
-           name = paste0(name, ", n (\\%)"))
+    mutate(
+      name = str_replace(name, "DIS_Received", ""),
+      name = str_replace(name, "DIS_Immuno", ""),
+      name = str_replace(name, "DIS_Iummuno", ""),
+      name = str_replace(name, "Dis_Immuno", ""),
+      name = str_replace(name, "DIS_", ""),
+      name = str_replace(name, "Received_Variable", ""),
+      name = str_replace(name, "_Variable", ""),
+      name = fct_inorder(gsub("([[:upper:]]*)([[:upper:]][[:lower:]]+)", "\\1 \\2", name)),
+      name = str_to_sentence(trimws(name)),
+      name = paste0(name, ", n (\\%)")
+    )
   colnames(tab) <- c("Drug received", dat %>% filter(DIS_rec == 1) %>% count(!!grpvar) %>% mutate(lab = paste0(!!grpvar, "<br>(n = ", n, ")")) %>% pull(lab))
   return(tab)
 }
@@ -828,14 +832,14 @@ generate_discharge_drugs_by <- function(dat, grpvar = NULL) {
 #' @return A tibble giving the summary
 #' @export
 generate_discharge_drugs_table <- function(dat, format = "html") {
-  ovrA   <- generate_discharge_drugs(dat %>% filter(AAssignment != "A0"))
-  ovrC   <- generate_discharge_drugs(dat %>% filter(CAssignment != "C0"))
+  ovrA <- generate_discharge_drugs(dat %>% filter(AAssignment != "A0"))
+  ovrC <- generate_discharge_drugs(dat %>% filter(CAssignment != "C0"))
   bygrpA <- generate_discharge_drugs_by(dat %>% filter(AAssignment != "A0"), AAssignment)
   bygrpC <- generate_discharge_drugs_by(dat %>% filter(CAssignment != "C0"), CAssignment)
-  tabA <- left_join(ovrA, bygrpA, by = "Drug received")[, c(1,(2 + 1:(ncol(bygrpA) - 1)), 2)]
-  tabC <- left_join(ovrC, bygrpC, by = "Drug received")[, c(1,(2 + 1:(ncol(bygrpC) - 1)), 2)]
+  tabA <- left_join(ovrA, bygrpA, by = "Drug received")[, c(1, (2 + 1:(ncol(bygrpA) - 1)), 2)]
+  tabC <- left_join(ovrC, bygrpC, by = "Drug received")[, c(1, (2 + 1:(ncol(bygrpC) - 1)), 2)]
   fsize <- 12
-  if(format == "latex") {
+  if (format == "latex") {
     fsize <- 9
     colnames(tabA) <- linebreak(colnames(tabA), linebreaker = "<br>", align = "c")
     colnames(tabC) <- linebreak(colnames(tabC), linebreaker = "<br>", align = "c")
@@ -846,11 +850,13 @@ generate_discharge_drugs_table <- function(dat, format = "html") {
     booktabs = T,
     caption = "Drugs received during hospital stay, antiviral domain.",
     align = "lrrrrrrrr",
-    escape = F) %>%
+    escape = F
+  ) %>%
     kable_styling(
       bootstrap_options = "striped",
       font_size = fsize,
-      latex_options = "HOLD_position") %>%
+      latex_options = "HOLD_position"
+    ) %>%
     pack_rows("Antivirals", 2, 8) %>%
     pack_rows("Immunomodulatory", 9, 19) %>%
     row_spec(0, align = "c") %>%
@@ -861,11 +867,13 @@ generate_discharge_drugs_table <- function(dat, format = "html") {
     booktabs = T,
     caption = "Drugs received during hospital stay, anticoagulation domain.",
     align = "lrrrrrrrr",
-    escape = F) %>%
+    escape = F
+  ) %>%
     kable_styling(
       bootstrap_options = "striped",
       font_size = fsize,
-      latex_options = "HOLD_position") %>%
+      latex_options = "HOLD_position"
+    ) %>%
     pack_rows("Antivirals", 2, 8) %>%
     pack_rows("Immunomodulatory", 9, 19) %>%
     row_spec(0, align = "c") %>%
@@ -884,7 +892,7 @@ make_intervention_table <- function(dat) {
       PO,
       WTH_FU,
       Antiviral = factor(AAssignment, levels = c("A0", "A1", "A2"), labels = intervention_labels_short()$AAssignment),
-      Anticoagulation = factor(CAssignment, levels = c("C0", "C1", "C2", "C3", "C4"),labels = intervention_labels_short()$CAssignment)
+      Anticoagulation = factor(CAssignment, levels = c("C0", "C1", "C2", "C3", "C4"), labels = intervention_labels_short()$CAssignment)
     )
   Adat <- sdat |>
     group_by(Antiviral, Anticoagulation = "Total") |>

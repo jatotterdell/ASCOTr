@@ -94,7 +94,7 @@ intervention_labels_short_break <- function() {
 #' @export
 get_intervention_dates <- function() {
   tribble(
-    ~ Domain, ~ Intervention, ~ stdate, ~ endate,
+    ~Domain, ~Intervention, ~stdate, ~endate,
     "Anticoagulation", "C1", as.Date("2021-02-18"), as.Date("2022-04-08"),
     "Anticoagulation", "C2", as.Date("2021-02-18"), as.Date("2022-04-08"),
     "Anticoagulation", "C3", as.Date("2021-02-18"), as.Date("2021-09-10"),
@@ -108,7 +108,8 @@ get_intervention_dates <- function() {
         C1 = "Standard dose", C2 = "Intermediate dose", C3 = "Standard dose + aspirin", C4 = "Therapeutic dose",
         A1 = "No specific antiviral", A2 = "Nafamostat"
       ),
-      label = "Domain intervention"))
+      label = "Domain intervention"
+    ))
 }
 
 
@@ -116,7 +117,7 @@ get_intervention_dates <- function() {
 #' @export
 get_interim_dates <- function() {
   tribble(
-    ~ meet_num, ~ meet_date,
+    ~meet_num, ~meet_date,
     1, as.Date("2021-07-21"),
     2, as.Date("2021-09-15"),
     3, as.Date("2021-12-01"),
@@ -130,7 +131,7 @@ get_interim_dates <- function() {
 #' @export
 intervention_strata <- function() {
   tribble(
-    ~ stdate, ~ endate, ~ strata_int, ~ strata_lab,
+    ~stdate, ~endate, ~strata_int, ~strata_lab,
     as.Date("2021-02-18"), as.Date("2021-06-09"), 1, "Add A",
     as.Date("2021-06-10"), as.Date("2021-09-10"), 2, "Drop C3",
     as.Date("2021-09-11"), as.Date("2021-10-13"), 3, "Add C4",

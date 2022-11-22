@@ -270,7 +270,7 @@ fit_primary_model <- function(dat = NULL,
     names(mdrws$gamma_epoch) <- epoch_map$epoch_lab
   }
 
-  if(includeA) {
+  if (includeA) {
     Ca <- mdat$ctrA
     mdrws$Acon <- as.vector(Ca %**% mdrws$beta[grepl("randA[0-9]", names(mdrws$beta))])
     names(mdrws$Acon) <- rownames(Ca)
@@ -351,17 +351,21 @@ plot_or_densities <- function(rvs) {
   tibble(Contrast = fct_inorder(names(rvs)), RV = rvs) %>%
     ggplot(., aes(y = Contrast, xdist = RV)) +
     stat_halfeye(
-      aes(fill =
-            after_stat(cut_cdf_qi(
-              cdf,
-              .width = c(.5, .8, .95, 0.99),
-              labels = scales::percent_format()))),
+      aes(
+        fill =
+          after_stat(cut_cdf_qi(
+            cdf,
+            .width = c(.5, .8, .95, 0.99),
+            labels = scales::percent_format()
+          ))
+      ),
       adjust = 1, n = 1001, .width = c(0.5, 0.8, 0.95)
     ) +
     scale_fill_brewer(
       palette = "Reds",
       direction = -1,
-      na.translate = FALSE) +
+      na.translate = FALSE
+    ) +
     labs(
       x = "Odds ratio contrast",
       fill = "Interval"
@@ -383,7 +387,8 @@ odds_ratio_summary_table <- function(OR, format = "html", fn = NULL) {
     Median = median(OR),
     `95% CrI` = apply(
       quantile(OR, c(0.025, 0.975)), 2,
-      function(x) sprintf("(%.2f, %.2f)", x[1], x[2])),
+      function(x) sprintf("(%.2f, %.2f)", x[1], x[2])
+    ),
     `Mean (SD)` = sprintf("%.2f (%.2f)", E(OR), sd(OR)),
     `Pr(OR < 1)` = Pr(OR < 1),
   ) %>%
@@ -392,11 +397,13 @@ odds_ratio_summary_table <- function(OR, format = "html", fn = NULL) {
       digits = 2,
       align = "lrrrr",
       linesep = "",
-      booktabs = TRUE) %>%
+      booktabs = TRUE
+    ) %>%
     kable_styling(
       font_size = 9,
       bootstrap_options = "striped",
-      latex_options = "HOLD_position")
+      latex_options = "HOLD_position"
+    )
   if (!is.null(fn) & format == "latex") {
     save_tex_table(out, fn)
   } else {
@@ -422,7 +429,7 @@ summarise_posterior <- function(dat, futval = 1.1) {
       `Pr(OR < 1)` =
         sprintf("%.2f", Pr(Posterior < 1)),
       `Pr(OR > 1/1.1)` =
-        sprintf("%.2f", Pr(Posterior > 1/futval))
+        sprintf("%.2f", Pr(Posterior > 1 / futval))
     )
 }
 
@@ -437,19 +444,21 @@ decision_quantity_summary_table <- function(OR, format = "html", fut_val = 1.1) 
   tdat <- tibble(
     Intervention = names(OR),
     posterior = OR,
-    Posterior = sprintf("%.2f (%.2f, %.2f)",
-                        median(posterior),
-                        quantile(posterior, 0.025),
-                        quantile(posterior, 0.975)),
+    Posterior = sprintf(
+      "%.2f (%.2f, %.2f)",
+      median(posterior),
+      quantile(posterior, 0.025),
+      quantile(posterior, 0.975)
+    ),
     `Superior\nPr(OR = min(OR))` = sprintf("%.2f", E(posterior == rvar_min(posterior))),
     `Effective\nPr(OR < 1)` = sprintf("%.2f", Pr(posterior < 1)),
-    `Futile\nPr(OR > 1/1.1)` = sprintf("%.2f", Pr(posterior > 1/fut_val)),
-    `Equivalent\nPr(1/1.1 < OR < 1.1)` = sprintf("%.2f", Pr(posterior < fut_val & posterior > 1/fut_val))
+    `Futile\nPr(OR > 1/1.1)` = sprintf("%.2f", Pr(posterior > 1 / fut_val)),
+    `Equivalent\nPr(1/1.1 < OR < 1.1)` = sprintf("%.2f", Pr(posterior < fut_val & posterior > 1 / fut_val))
   ) %>%
     select(-posterior)
   tdat[1, 2] <- "1.00"
   tdat[1, -(1:3)] <- "-"
-  if(format == "latex") {
+  if (format == "latex") {
     colnames(tdat) <- linebreak(colnames(tdat), align = "c", linebreaker = "\n")
   }
   return(tdat)

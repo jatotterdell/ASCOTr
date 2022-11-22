@@ -31,7 +31,7 @@ expit <- function(x) {
 ordered_logit <- function(x) {
   c(
     1 - expit(-x[1]),
-    expit(-x[1:(length(x)-1)]) - expit(-x[2:(length(x))]),
+    expit(-x[1:(length(x) - 1)]) - expit(-x[2:(length(x))]),
     expit(-tail(x, 1))
   )
 }
