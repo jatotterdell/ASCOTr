@@ -715,7 +715,12 @@ format_daily_data <- function(dd) {
       DD_who2 = as.integer(substr(DD_O2, 1, 1)),
       DD_DoseLMWH = as.numeric(DD_DoseLMWH)
     ) %>%
-    arrange(StudyPatientID, DD_StudyDay)
+    arrange(StudyPatientID, DD_StudyDay) |>
+    # Add dose for ALF00015 on day 9
+    mutate(
+      DD_NafamostatAdministered = if_else(StudyPatientID == "ALF00015" & DD_StudyDay == 9, "Yes", DD_NafamostatAdministered),
+      DD_NafamostatDuration = if_else(StudyPatientID == "ALF00015" & DD_StudyDay == 9, 3, DD_NafamostatDuration)
+    )
 }
 
 
