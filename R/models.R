@@ -166,6 +166,7 @@ make_X_design <- function(dat,
 #' @return A list of data for use with Stan model
 #' @export
 make_primary_model_data <- function(dat,
+                                    outcome = "PO",
                                     vars = c("inelgc3", "agegte60", "ctry"),
                                     beta_sd_int = 2.5,
                                     beta_sd_var = c(10, 2.5, 1, 1),
@@ -173,8 +174,9 @@ make_primary_model_data <- function(dat,
                                     ctr = contr.equalprior,
                                     includeA = TRUE,
                                     includeC = TRUE,
+                                    intercept = TRUE,
                                     ...) {
-  X <- make_X_design(dat, vars = vars, ctr = ctr, includeA = includeA, includeC = includeC)
+  X <- make_X_design(dat, vars = vars, ctr = ctr, includeA = includeA, includeC = includeC, intercept = intercept)
   nXtrt <- sum(grepl("rand", colnames(X)))
   epoch <- dat[["epoch"]]
   M_epoch <- max(epoch)
@@ -185,12 +187,16 @@ make_primary_model_data <- function(dat,
   region_by_site <- region_by_site <- dat |>
     dplyr::count(ctry_num, site_num) |>
     pull(ctry_num)
-  y <- dat[["PO"]]
+  y <- dat[[outcome]]
   N <- dim(X)[1]
   K <- dim(X)[2]
-  beta_sd <- c(beta_sd_int, rep(beta_sd_trt, nXtrt), beta_sd_var)
+  beta_sd <- c(rep(beta_sd_trt, nXtrt), beta_sd_var)
+  if (intercept) {
+    beta_sd <- c(beta_sd_int, beta_sd)
+  }
   out <- list(
     N = N, K = K, X = X, y = y,
+    J = max(y), p_par = rep(2 / max(y), max(y)),
     M_region = M_region, region = region,
     M_site = M_site, site = site,
     M_epoch = M_epoch, epoch = epoch,
@@ -222,6 +228,7 @@ make_primary_model_data <- function(dat,
 #' @export
 fit_primary_model <- function(dat = NULL,
                               model = NULL,
+                              outcome = "PO",
                               vars = c("inelgc3", "agegte60", "supp_oxy2", "ctry"),
                               beta_sd_int = 2.5,
                               beta_sd_var = c(10, 2.5, 2.5, 1, 1),
@@ -229,6 +236,7 @@ fit_primary_model <- function(dat = NULL,
                               ctr = contr.equalprior,
                               includeA = TRUE,
                               includeC = TRUE,
+                              intercept = TRUE,
                               seed = 32915,
                               adapt_delta = 0.99,
                               iter_sampling = 2500,
@@ -236,6 +244,7 @@ fit_primary_model <- function(dat = NULL,
                               ...) {
   mdat <- make_primary_model_data(
     dat,
+    outcome = outcome,
     vars = vars,
     beta_sd_int = beta_sd_int,
     beta_sd_var = beta_sd_var,
@@ -243,6 +252,7 @@ fit_primary_model <- function(dat = NULL,
     ctr = ctr,
     includeA = includeA,
     includeC = includeC,
+    intercept = intercept,
     ...
   )
   snk <- capture.output(
@@ -386,7 +396,7 @@ odds_ratio_summary_table <- function(OR, format = "html", fn = NULL) {
     Parameter = names(OR),
     Median = median(OR),
     `95% CrI` = apply(
-      quantile(OR, c(0.025, 0.975)), 2,
+      as.matrix(quantile(OR, c(0.025, 0.975))), 2,
       function(x) sprintf("(%.2f, %.2f)", x[1], x[2])
     ),
     `Mean (SD)` = sprintf("%.2f (%.2f)", E(OR), sd(OR)),
