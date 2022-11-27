@@ -45,6 +45,10 @@ add_database_corrections <- function(dat) {
       # Antiviral-domain specific data at discharge
       #   DIS_ThrombophlebitisIVLine
       #   DIS_NonMajorBleeding
+      AAssignment = case_when(
+        StudyPatientID == "MMC00081" ~ "A0",
+        TRUE ~ AAssignment
+      ),
       EL_Con_DomainA = case_when(
         StudyPatientID == "MMC00081" ~ "No",
         TRUE ~ EL_Con_DomainA
