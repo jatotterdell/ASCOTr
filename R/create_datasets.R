@@ -500,6 +500,41 @@ add_time_to_recovery <- function(dat) {
   return(out)
 }
 
+
+fix_crp_units <- function(dat) {
+  dat %>%
+    mutate(
+      # Use units as provided
+      BAS_CRPUnits_fixed = case_when(
+        Location == "ALF" ~ "mg/L|ug/mL",
+        Location == "BHN" ~ "mg/L|ug/mL",
+        Location == "BLK" ~ "mg/L|ug/mL",
+        Location == "BXH" ~ "mg/L|ug/mL",
+        Location == "CAM" ~ "mg/L|ug/mL",
+        Location == "LIV" ~ "mg/L|ug/mL",
+        Location == "MID" ~ "mg/L|ug/mL",
+        Location == "MMC" ~ "mg/L|ug/mL",
+        Location == "PRC" ~ "mg/L|ug/mL",
+        Location == "RMH" ~ "mg/L|ug/mL",
+        Location == "RNS" ~ "mg/L|ug/mL",
+        Location == "RPH" ~ "mg/L|ug/mL",
+        Location == "SVH" ~ "mg/L|ug/mL",
+        Location == "TUT" ~ "mg/L|ug/mL",
+        Location == "WEL" ~ "mg/L|ug/mL",
+        Location == "WES" ~ "mg/L|ug/mL",
+        Location == "WOL" ~ "mg/L|ug/mL",
+        Location == "WSH" ~ "mg/L|ug/mL",
+        Location == "WWB" ~ "mg/L|ug/mL"
+      ),
+      # Reapply transformation
+      BAS_CRPResult_fixed = case_when(
+        BAS_CRPUnits_fixed == "mg/dL" ~ 10 * BAS_CRPEntered,
+        BAS_CRPUnits_fixed == "mg/L|ug/mL" ~ BAS_CRPEntered,
+        TRUE ~ NA_real_
+      )
+    )
+}
+
 # Formatting ----
 
 #' @title format_eligibility_data
@@ -822,6 +857,7 @@ create_fulldata_no_daily <- function() {
       WTH_FU = if_else(is.na(WTH_FU), 0L, WTH_FU),
       WTH_day = as.integer(CON_WithdrawnDate - RandDate + 1)
     ) %>%
+    fix_crp_units() %>%
     add_v5_activation_date() %>%
     add_primary_outcome_components() %>%
     add_days_alive_and_free() %>%
