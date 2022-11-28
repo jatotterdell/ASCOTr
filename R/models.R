@@ -428,6 +428,43 @@ odds_ratio_summary_table <- function(OR, format = "html", fn = NULL) {
 }
 
 
+#' @title Create odds ratio summary table
+#' @param OR Odds ratio RV
+#' @param format Table format
+#' @param fn Filename
+#' @return Table if fn is NULL, otherwise save the table
+#' @export
+odds_ratio_summary_table_rev <- function(OR, format = "html", fn = NULL) {
+  out <- tibble(
+    Parameter = names(OR),
+    Median = median(OR),
+    `95% CrI` = apply(
+      as.matrix(quantile(OR, c(0.025, 0.975))), 2,
+      function(x) sprintf("(%.2f, %.2f)", x[1], x[2])
+    ),
+    `Mean (SD)` = sprintf("%.2f (%.2f)", E(OR), sd(OR)),
+    `Pr(OR > 1)` = Pr(OR > 1),
+  ) %>%
+    kable(
+      format = format,
+      digits = 2,
+      align = "lrrrr",
+      linesep = "",
+      booktabs = TRUE
+    ) %>%
+    kable_styling(
+      font_size = 9,
+      bootstrap_options = "striped",
+      latex_options = "HOLD_position"
+    )
+  if (!is.null(fn) & format == "latex") {
+    save_tex_table(out, fn)
+  } else {
+    return(out)
+  }
+}
+
+
 #' @title Summarise a posterior
 #' @param dat Dataset with column `Posterior` of type `rvar`.
 #' @param futval Futility reference value

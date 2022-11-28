@@ -6,11 +6,15 @@
 \usage{
 make_primary_model_data(
   dat,
+  outcome = "PO",
   vars = c("inelgc3", "agegte60", "ctry"),
   beta_sd_int = 2.5,
   beta_sd_var = c(10, 2.5, 1, 1),
   beta_sd_trt = 1,
   ctr = contr.equalprior,
+  includeA = TRUE,
+  includeC = TRUE,
+  intercept = TRUE,
   ...
 )
 }
