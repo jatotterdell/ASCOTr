@@ -187,7 +187,13 @@ make_primary_model_data <- function(dat,
   region_by_site <- region_by_site <- dat |>
     dplyr::count(ctry_num, site_num) |>
     pull(ctry_num)
-  y <- dat[[outcome]]
+  y_raw <- dat[[outcome]]
+  if(diff(range(y_raw)) == 1) {
+    y_mod <- y_raw
+  } else {
+    y_raw <- ordered(y_raw)
+    y_mod <- as.integer(ordered(y_raw))
+  }
   N <- dim(X)[1]
   K <- dim(X)[2]
   beta_sd <- c(rep(beta_sd_trt, nXtrt), beta_sd_var)
@@ -195,8 +201,8 @@ make_primary_model_data <- function(dat,
     beta_sd <- c(beta_sd_int, beta_sd)
   }
   out <- list(
-    N = N, K = K, X = X, y = y,
-    J = max(y), p_par = rep(2 / max(y), max(y)),
+    N = N, K = K, X = X, y = y_mod, y_raw = y_raw,
+    J = max(y_mod), p_par = rep(2 / max(y_mod), max(y_mod)),
     M_region = M_region, region = region,
     M_site = M_site, site = site,
     M_epoch = M_epoch, epoch = epoch,
