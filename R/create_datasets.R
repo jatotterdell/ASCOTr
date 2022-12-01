@@ -613,7 +613,8 @@ format_enrolled_data <- function(enr) {
       FAS_ITT = 1L,
       ACS_ITT = if_else(CAssignment != "C0", 1L, 0L),
       AVS_ITT = if_else(AAssignment != "A0", 1L, 0L),
-      agegte60 = labelled(as.integer(AgeAtEntry >= 60), label = "Age >= 60")
+      agegte60 = labelled(as.integer(AgeAtEntry >= 60), label = "Age >= 60"),
+      sexF = as.integer(Sex == "Female"),
     )
 }
 
