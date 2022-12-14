@@ -406,7 +406,7 @@ odds_ratio_summary_table <- function(OR, format = "html", fn = NULL) {
       function(x) sprintf("(%.2f, %.2f)", x[1], x[2])
     ),
     `Mean (SD)` = sprintf("%.2f (%.2f)", E(OR), sd(OR)),
-    `Pr(OR < 1)` = Pr(OR < 1),
+    `Pr(OR < 1)` = sprintf("%.2f", Pr(OR < 1)),
   ) %>%
     kable(
       format = format,
@@ -443,7 +443,7 @@ odds_ratio_summary_table_rev <- function(OR, format = "html", fn = NULL) {
       function(x) sprintf("(%.2f, %.2f)", x[1], x[2])
     ),
     `Mean (SD)` = sprintf("%.2f (%.2f)", E(OR), sd(OR)),
-    `Pr(OR > 1)` = Pr(OR > 1),
+    `Pr(OR > 1)` = sprintf("%.2f", Pr(OR > 1)),
   ) %>%
     kable(
       format = format,

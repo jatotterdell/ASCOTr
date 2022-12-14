@@ -551,6 +551,11 @@ fix_crp_units <- function(dat) {
     )
 }
 
+
+create_per_protocol_flags <- function() {
+
+}
+
 # Formatting ----
 
 #' @title format_eligibility_data
