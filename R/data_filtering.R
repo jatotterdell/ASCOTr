@@ -331,7 +331,8 @@ make_avs_itt_set <- function(dat) {
         epoch_raw %in% 4:6 ~ 7,
         epoch_raw %in% 7:8 ~ 8,
         TRUE ~ epoch_raw
-      ) - 5
+      ) - 5,
+      crp_tertile = quantile_cuts(BAS_CRPResult_fixed, seq(0, 1, 1/3))
     ) |>
     group_by(epoch) |>
     mutate(epoch_lab = paste(
