@@ -24,3 +24,11 @@ model {
   // likelihood
   target += bernoulli_logit_lpmf(y | eta);
 }
+
+generated quantities {
+  array[N] int y_ppc;
+  vector[N] eta = X * beta;
+  for(n in 1:N) {
+    y_ppc[n] = bernoulli_logit_rng(eta[n]);
+  }
+}
