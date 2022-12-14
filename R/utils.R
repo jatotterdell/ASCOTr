@@ -1,5 +1,20 @@
 # Misc ----
 
+#' @title quantile_cuts
+#' @description
+#' Convert a numeric vector into a categorical according to quantiles.
+#' @param x Numeric vector
+#' @param ss Increasing sequence of probability cut-points
+#' @return A factor giving the quantiles according to `ss`
+#' @export
+quantile_cuts <- function(x, ss) {
+  fct_explicit_na(cut(
+    x,
+    breaks = c(quantile(x, probs = ss, na.rm = TRUE)),
+    include.lowest = TRUE
+  ))
+}
+
 #' @title logit
 #' @description
 #' logit transform
