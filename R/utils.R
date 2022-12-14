@@ -15,6 +15,24 @@ quantile_cuts <- function(x, ss) {
   ))
 }
 
+
+#' @title str_median_iqr
+#' @param x Numeric vector
+#' @return String with median and IQR
+str_median_iqr <- function(x, ...) {
+  sprintf("%.0f (%.0f, %.0f)", median(x, ...), quantile(x, 0.25, ...), quantile(x, 0.75, ...))
+}
+
+
+#' @title str_median_iqr
+#' @param x Numeric vector
+#' @return String with median and IQR
+str_mean_sd <- function(x, digi = "2", ...) {
+  sprintf(gsub("0", digi, "%.0f (%.0f)"), mean(x, ...), sd(x, ...))
+}
+
+
+
 #' @title logit
 #' @description
 #' logit transform

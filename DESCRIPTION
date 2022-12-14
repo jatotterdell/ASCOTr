@@ -18,6 +18,6 @@ Imports:
     lubridate,
     readr,
     stringr
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Depends: 
     R (>= 2.10)

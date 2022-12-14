@@ -916,3 +916,96 @@ make_intervention_table <- function(dat) {
     bind_rows(Adat)
   return(ACdat)
 }
+
+# Table 1 ----
+
+#' @title generate_table_1_data
+#' @param dat A dataset
+generate_table_1_data <- function(dat, grp = NULL) {
+  f1 <- function(.data, grp) {
+    if (is.null(grp)) {
+      .data
+    } else {
+      group_by(.data, AAssignment = factor(AAssignment, levels = c("A0", "A1", "A2"), labels = intervention_labels2()$AAssignment))
+    }
+  }
+  f2 <- function(data, grp) {
+    if (is.null(grp)) {
+      val <-
+      gather(data, Variable, "All participants") |>
+        rename_with( ~ paste0(.x, "\n(n = ", nrow(dat), ")"), `All participants`)
+    } else {
+      ns <- dat |> count(AAssignment) |> pull(n)
+      gather(data, Variable, value, -AAssignment, factor_key = TRUE) |>
+        spread(AAssignment, value) |>
+        rename_with( ~ paste0(.x, "\n(n = ", ns, ")"), 2:3)
+    }
+  }
+  dat |>
+    f1(grp) |>
+    summarise(
+      Assigned = n(),
+      `Age -- yr` = sprintf("%.0f (%.0f, %.0f)", median(AgeAtEntry), quantile(AgeAtEntry, 0.25), quantile(AgeAtEntry, 0.75)),
+      `Male sex` = sprintf("%i (%.0f)", sum(Sex == "Male", na.rm = TRUE), 100 * sum(Sex == "Male", na.rm = TRUE) / n()),
+      `Country_Australia` = sprintf("%i (%.0f)", sum(Country == "AU", na.rm = TRUE), 100 * sum(Country == "AU", na.rm = TRUE) / n()),
+      `Country_New Zealand` = sprintf("%i (%.0f)", sum(Country == "NZ", na.rm = TRUE), 100 * sum(Country == "NZ", na.rm = TRUE) / n()),
+      `Country_Nepal` = sprintf("%i (%.0f)", sum(Country == "NP", na.rm = TRUE), 100 * sum(Country == "NP", na.rm = TRUE) / n()),
+      `Ethnicity_European` = sprintf("%i (%.0f)", sum(BAS_EthnicityEuropean == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityEuropean == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Pacific peoples or Maori` = sprintf("%i (%.0f)", sum(BAS_EthnicityPacificIslander == "Yes" | BAS_EthnicityMaori == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityPacificIslander == "Yes" | BAS_EthnicityMaori == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Middle Eastern` = sprintf("%i (%.0f)", sum(BAS_EthnicityMiddleEastern == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityMiddleEastern == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Asian` = sprintf("%i (%.0f)", sum(BAS_EthnicityAsian == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityAsian == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Aboriginal` = sprintf("%i (%.0f)", sum(BAS_EthnicityAboriginal == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityAboriginal == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Indian` = sprintf("%i (%.0f)", sum(BAS_EthnicityIndian == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityIndian == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_African` = sprintf("%i (%.0f)", sum(BAS_EthnicityAfrican == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityAfrican == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Latin American` = sprintf("%i (%.0f)", sum(BAS_EthnicityLatinAmerican == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityLatinAmerican == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Other/unknown` = sprintf("%i (%.0f)", sum(BAS_EthnicityOther == "Yes" | BAS_EthnicityUnknown == "Yes"), 100 * sum(BAS_EthnicityOther == "Yes" | BAS_EthnicityUnknown == "Yes") / n()),
+      `Weight -- kg` = sprintf("%.0f (%.0f, %.0f)", median(BAS_Weight), quantile(BAS_Weight, 0.25), quantile(BAS_Weight, 0.75)),
+      `Vaccinated -- no./total no.` = sprintf("%i/%i (%.0f)", sum(BAS_PatientVaccinated == "Yes", na.rm = TRUE), sum(!is.na(BAS_PatientVaccinated)), 100 * sum(BAS_PatientVaccinated == "Yes", na.rm = TRUE) / sum(!is.na(BAS_PatientVaccinated))),
+      `Comorbidities_Obesity` = sprintf("%i (%.0f)", sum(BAS_Obesity == "Yes"), 100 * sum(BAS_Obesity == "Yes") / n()),
+      `Comorbidities_Hypertension` = sprintf("%i (%.0f)", sum(BAS_Hypertension == "Yes"), 100 * sum(BAS_Hypertension == "Yes") / n()),
+      `Comorbidities_Diabetes` = sprintf("%i (%.0f)", sum(BAS_Diabetes == "Yes"), 100 * sum(BAS_Diabetes == "Yes") / n()),
+      `Comorbidities_Asthma` = sprintf("%i (%.0f)", sum(BAS_Asthma == "Yes"), 100 * sum(BAS_Asthma == "Yes") / n()),
+      `Comorbidities_Chronic lung disease` = sprintf("%i (%.0f)", sum(BAS_ChronicLungDisease == "Yes"), 100 * sum(BAS_ChronicLungDisease == "Yes") / n()),
+      `Comorbidities_Chronic cardiac disease` = sprintf("%i (%.0f)", sum(BAS_ChonicCardiacDisease == "Yes"), 100 * sum(BAS_ChonicCardiacDisease == "Yes") / n()),
+      `No. of days_Onset of symptoms to hospitalisation` = sprintf("%.0f (%.0f, %.0f)", median(dsfs), quantile(dsfs, 0.25), quantile(dsfs, 0.75)),
+      `No. of days_Hospitalisation to randomisation` = sprintf("%.0f (%.0f, %.0f)", median(dhtr), quantile(dhtr, 0.25), quantile(dhtr, 0.75)),
+      `Any time breathing ambient air in past 24 hours` = sprintf("%i (%.0f)", sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE), 100 * sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE) / n()),
+      `Lowest SpO2 while breathing ambient air` = sprintf("%.0f (%.0f, %.0f)", median(BAS_PeripheralOxygen, na.rm = TRUE), quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.25), quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.75)),
+      `Highest respiratory rate in past 24 hours` = sprintf("%.0f (%.0f, %.0f)", median(BAS_RespRateHighest, na.rm = TRUE), quantile(BAS_RespRateHighest, prob = 0.25, na.rm = TRUE), quantile(BAS_RespRateHighest, prob = 0.75, na.rm = TRUE)),
+      `Glasgow coma score < 15` = sprintf("%i (%.0f)", sum(BAS_PatientGCS == "Yes", na.rm = TRUE), 100 * sum(BAS_PatientGCS == "Yes", na.rm = TRUE) / n()),
+      `Lab_CRP -- mg/L` = str_median_iqr(BAS_CRPResult_fixed, na.rm = TRUE),
+      `Lab_CRP Patients evaluated` = sprintf("%i (%.0f)", sum(!is.na(BAS_CRPResult_fixed)), 100 * mean(!is.na(BAS_CRPResult_fixed))),
+      `Lab_D-dimer > upper limit normal` = sprintf("%i (%.0f)", sum(BAS_DDimerOutOfRange == "Yes", na.rm = TRUE), 100 * mean(BAS_DDimerOutOfRange == "Yes", na.rm = TRUE)),
+      `Lab_D-dimer Patients evaluated` = sprintf("%i (%.0f)", sum(!is.na(BAS_DDimerOutOfRange)), 100 * mean(!is.na(BAS_DDimerOutOfRange))),
+      `Lab_APTT -- s` = str_median_iqr(BAS_APTT, na.rm = TRUE),
+      `Lab_APTT Patients evaluated` = sprintf("%i (%.0f)", sum(!is.na(BAS_APTT)), 100 * mean(!is.na(BAS_APTT))),
+      `Lab_Internation normlised ratio (SD)` = str_mean_sd(BAS_INR, na.rm = TRUE),
+      `Lab_INR Patients evaluated` = sprintf("%i (%.0f)", sum(!is.na(BAS_INR)), 100 * mean(!is.na(BAS_INR))),
+    ) |>
+    f2(grp)
+}
+
+
+#' @title generate_table_1
+#' @param dat A dataset
+generate_table_1 <- function(dat, format = "html") {
+  tab <- left_join(generate_table_1_data(dat, sym("AAssignment")), generate_table_1_data(dat)) |>
+    mutate(Variable = str_replace(Variable, "[A-z]*_", ""))
+  fsize <- ifelse(format == "html", 12, 7)
+  if(format == "latex") {
+    colnames(tab) <- linebreak(colnames(tab))
+  }
+  out <- tab[-1, ] |>
+    kable(
+      format = format,
+      align = "lrrr",
+      booktabs = TRUE
+    ) |>
+    kable_styling(latex_options = "HOLD_position", font_size = fsize) |>
+    pack_rows("Country", 3, 5) |>
+    pack_rows("Ethnicity", 6, 14) |>
+    pack_rows("Co-morbidities", 17, 22) |>
+    pack_rows("No. of days", 23, 24) |>
+    pack_rows("Lab values", 29, 36)
+  return(out)
+}

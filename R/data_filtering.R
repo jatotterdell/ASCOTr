@@ -220,6 +220,7 @@ add_derived_covariates <- function(dat) {
       airoxy2 = factor(if_else(is.na(airoxy), 2, airoxy), levels = 0:2, labels = c("No", "Yes", "Unknown")),
       dsfs = as.numeric(RandDate - EL_FirstSymptoms),
       dsfsgt7 = as.numeric(dsfs > 7),
+      dhtr = as.numeric(RandDate - EL_AdmittedToHospital),
       vax = case_when(
         is.na(BAS_PatientVaccinated) ~ 2,
         BAS_PatientVaccinated == "Yes" ~ 1,
