@@ -153,7 +153,45 @@ add_database_corrections <- function(dat) {
         case_when(
           StudyPatientID == "PRC00007" ~ 73,
           TRUE ~ EL_eGFR
-        )
+        ),
+    )
+}
+
+
+#' @title add_outcome_corrections
+#' @description
+#' Additional follow-up with sites was undertaken for participants
+#' randomsied to the antiviral domain who had missing primary outcome data
+#' due to unknown day 28 status.
+#'
+#' The following corrections are made as per email correspondence with study
+#' coordinators who contacted sites for further information.
+#' @param dat Dataset containing relevant variables
+#' @return `dat` but with relevant outcome fields corrected
+#' @export
+add_outcome_corrections <- function(dat) {
+  dat %>%
+    mutate(
+      # WES00039
+      D28_PatientStatusDay28 = if_else(StudyPatientID == "WES00039", "Alive", D28_PatientStatusDay28),
+      D28_OutcomeVasopressors = if_else(StudyPatientID == "WES00039", "No", D28_OutcomeVasopressors),
+      D28_Status = if_else(StudyPatientID == "WES00039", "1. Not hospitalised, no limitations on activities", D28_Status),
+      D28_OutcomeDaysFreeOfVentilation = if_else(StudyPatientID == "WES00039", 28, D28_OutcomeDaysFreeOfVentilation ),
+
+      # WES00048
+      D28_PatientStatusDay28 = if_else(StudyPatientID == "WES00048", "Alive", D28_PatientStatusDay28),
+      D28_OutcomeVasopressors = if_else(StudyPatientID == "WES00048", "No", D28_OutcomeVasopressors),
+      D28_Status = if_else(StudyPatientID == "WES00048", "1. Not hospitalised, no limitations on activities", D28_Status),
+
+      # BXH00086
+      D28_PatientStatusDay28 = if_else(StudyPatientID == "BXH00086", "Alive", D28_PatientStatusDay28),
+      D28_OutcomeVasopressors = if_else(StudyPatientID == "BXH00086", "No", D28_OutcomeVasopressors),
+      D28_Status = if_else(StudyPatientID == "BXH00086", "2. Not hospitalised, limitations on activities", D28_Status),
+      D28_OutcomeDaysFreeOfVentilation = if_else(StudyPatientID == "BXH00086", 28, D28_OutcomeDaysFreeOfVentilation),
+
+      # WEL00001
+      D28_OutcomeVasopressors = if_else(StudyPatientID == "WEL00001", "No", D28_OutcomeVasopressors),
+      D28_OutcomeDaysFreeOfVentilation = if_else(StudyPatientID == "WEL00001", 28, D28_OutcomeDaysFreeOfVentilation)
     )
 }
 
@@ -860,6 +898,7 @@ create_fulldata_no_daily <- function() {
     ) %>%
     # Need database corrections for some formatting, so apply first
     add_database_corrections() %>%
+    add_outcome_corrections() %>%
     format_eligibility_data() %>%
     format_enrolled_data() %>%
     format_consent_data() %>%
