@@ -967,8 +967,8 @@ generate_table_1_data <- function(dat, grp = NULL) {
       `Comorbidities_Asthma` = sprintf("%i (%.0f)", sum(BAS_Asthma == "Yes"), 100 * sum(BAS_Asthma == "Yes") / n()),
       `Comorbidities_Chronic lung disease` = sprintf("%i (%.0f)", sum(BAS_ChronicLungDisease == "Yes"), 100 * sum(BAS_ChronicLungDisease == "Yes") / n()),
       `Comorbidities_Chronic cardiac disease` = sprintf("%i (%.0f)", sum(BAS_ChonicCardiacDisease == "Yes"), 100 * sum(BAS_ChonicCardiacDisease == "Yes") / n()),
-      `No. of days_Onset of symptoms to hospitalisation` = sprintf("%.0f (%.0f, %.0f)", median(dsfs), quantile(dsfs, 0.25), quantile(dsfs, 0.75)),
-      `No. of days_Hospitalisation to randomisation` = sprintf("%.0f (%.0f, %.0f)", median(dhtr), quantile(dhtr, 0.25), quantile(dhtr, 0.75)),
+      `Onset of symptoms to hospitalisation` = sprintf("%.0f (%.0f, %.0f)", median(dsfs), quantile(dsfs, 0.25), quantile(dsfs, 0.75)),
+      `Hospitalisation to randomisation` = sprintf("%.0f (%.0f, %.0f)", median(dhtr), quantile(dhtr, 0.25), quantile(dhtr, 0.75)),
       `Any time breathing ambient air in past 24 hours` = sprintf("%i (%.0f)", sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE), 100 * sum(BAS_OnRoomAir24hrs == "Yes", na.rm = TRUE) / n()),
       `Lowest SpO2 while breathing ambient air` = sprintf("%.0f (%.0f, %.0f)", median(BAS_PeripheralOxygen, na.rm = TRUE), quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.25), quantile(BAS_PeripheralOxygen, na.rm = TRUE, prob = 0.75)),
       `Highest respiratory rate in past 24 hours` = sprintf("%.0f (%.0f, %.0f)", median(BAS_RespRateHighest, na.rm = TRUE), quantile(BAS_RespRateHighest, prob = 0.25, na.rm = TRUE), quantile(BAS_RespRateHighest, prob = 0.75, na.rm = TRUE)),
@@ -988,17 +988,19 @@ generate_table_1_data <- function(dat, grp = NULL) {
 
 #' @title generate_table_1
 #' @param dat A dataset
+#' @export
 generate_table_1 <- function(dat, format = "html") {
   tab <- left_join(generate_table_1_data(dat, sym("AAssignment")), generate_table_1_data(dat)) |>
     mutate(Variable = str_replace(Variable, "[A-z]*_", ""))
   fsize <- ifelse(format == "html", 12, 7)
   if(format == "latex") {
-    colnames(tab) <- linebreak(colnames(tab))
+    colnames(tab) <- linebreak(colnames(tab), align = "c")
   }
   out <- tab[-1, ] |>
     kable(
       format = format,
       align = "lrrr",
+      escape = F,
       booktabs = TRUE
     ) |>
     kable_styling(latex_options = "HOLD_position", font_size = fsize) |>
