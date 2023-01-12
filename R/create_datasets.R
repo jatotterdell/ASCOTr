@@ -413,6 +413,14 @@ add_primary_outcome_components <- function(dat) {
         # If day 28 status unknown, or missing any daily records, or missing vasop/vent
         is.na(D28_death) | DAILY_missing == 1 | is.na(DAILY_missing) | is.na(D28_vasop) | is.na(ANY_vent) ~ NA_real_,
         TRUE ~ 0
+      ),
+      # Note - two participants, ALF00006 and ALF00012 had censored D28_Status:
+      # - it's known that D28_Status in [1, 2] but not which value, so this is NA in the dataset,
+      #   but we know that they did not meet the primary outcome
+      #   a correction is made here
+      PO = case_when(
+        StudyPatientID %in% c("ALF00006", "ALF00012") ~ 0,
+        TRUE ~ PO
       )
     )
   return(outcome_components_d28)
@@ -898,7 +906,7 @@ create_fulldata_no_daily <- function() {
     ) %>%
     # Need database corrections for some formatting, so apply first
     add_database_corrections() %>%
-    add_outcome_corrections() %>%
+    # add_outcome_corrections() %>%
     format_eligibility_data() %>%
     format_enrolled_data() %>%
     format_consent_data() %>%
