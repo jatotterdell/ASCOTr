@@ -809,6 +809,15 @@ format_d28_data <- function(dat) {
 }
 
 
+#' @title format_d90_data
+#' @param dat Day 90 data
+#' @returns Formatted data
+#' @export
+format_d90_data <- function(dat) {
+  dat
+}
+
+
 #' @title format_daily_data
 #' @description
 #' Apply formatting to the raw daily data extract.
@@ -900,6 +909,7 @@ create_fulldata_no_daily <- function() {
     left_join(withdrawal, by = "StudyPatientID") %>%
     left_join(discharge, by = "StudyPatientID") %>%
     left_join(d28, by = "StudyPatientID") %>%
+    left_join(d90, by = "StudyPatientID") %>%
     left_join(
       summarise_daily_data(format_daily_data(daily)),
       by = "StudyPatientID"
@@ -914,6 +924,7 @@ create_fulldata_no_daily <- function() {
     format_withdrawal_data() %>%
     format_discharge_data() %>%
     format_d28_data() %>%
+    format_d90_data() %>%
     # Additional derivations requiring full data
     mutate(
       ENR_rec = if_else(is.na(ENR_rec), 0, ENR_rec),

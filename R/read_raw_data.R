@@ -274,7 +274,7 @@ read_d90_file <- function(fn) {
     )
   ) %>%
     filter(PT_ProtocolVersion != "1.0") %>%
-    select(-PT_ProtocolVersion) %>%
+    select(-PT_ProtocolVersion, -FormLock) %>%
     mutate(D90_rec = 1)
   return(d90)
 }
@@ -324,6 +324,6 @@ read_raw_extracts <- function(dir, fn) {
 #' @return Returns nothing, but adds all data extracts to global environment.
 #' @export
 read_all_raw_extracts <- function(dir) {
-  fns <- c("eligibility", "consent", "enrolled", "baseline", "withdrawal", "discharge", "daily", "d28")
+  fns <- c("eligibility", "consent", "enrolled", "baseline", "withdrawal", "discharge", "daily", "d28", "d90")
   read_raw_extracts(dir, fns)
 }

@@ -175,18 +175,20 @@ make_primary_model_data <- function(dat,
                                     includeA = TRUE,
                                     includeC = TRUE,
                                     intercept = TRUE,
+                                    ctry_var = "ctry_num",
+                                    site_var = "site_num",
                                     ...) {
   X <- make_X_design(dat, vars = vars, ctr = ctr, includeA = includeA, includeC = includeC, intercept = intercept)
   nXtrt <- sum(grepl("rand", colnames(X)))
   epoch <- dat[["epoch"]]
   M_epoch <- max(epoch)
-  region <- dat[["ctry_num"]]
+  region <- dat[[ctry_var]]
   M_region <- max(region)
-  site <- dat[["site_num"]]
+  site <- dat[[site_var]]
   M_site <- max(site)
   region_by_site <- region_by_site <- dat |>
-    dplyr::count(ctry_num, site_num) |>
-    pull(ctry_num)
+    count(.data[[ctry_var]], .data[[site_var]]) |>
+    pull(.data[[ctry_var]])
   y_raw <- dat[[outcome]]
   if(diff(range(y_raw)) == 1) {
     y_mod <- y_raw

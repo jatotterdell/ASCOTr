@@ -153,10 +153,10 @@ add_epoch_term <- function(dat) {
 add_region_site_groups <- function(dat) {
   site_counts <- dat |>
     count(
-      Region = fct_collapse(
+      Region = droplevels(fct_collapse(
         factor(Country, levels = c("IN", "AU", "NP", "NZ")),
         "AU/NZ" = c("AU", "NZ")
-      ),
+      )),
       Location
     )
   merge_ausnz <- site_counts |>
@@ -164,10 +164,10 @@ add_region_site_groups <- function(dat) {
     pull(Location)
   dat <- dat |>
     mutate(
-      ctry = fct_collapse(
+      ctry = droplevels(fct_collapse(
         factor(Country, levels = c("IN", "AU", "NP", "NZ")),
         "AU/NZ" = c("AU", "NZ")
-      ),
+      )),
       # group sites with < 5 counts
       site = fct_collapse(
         factor(Location, levels = site_counts$Location),
@@ -185,6 +185,51 @@ add_region_site_groups <- function(dat) {
       region_site |>
         select(-n),
       by = c("ctry", "site")
+    )
+}
+
+
+#' @title Add country and site groupings to dataset
+#' @description
+#' Adds country groups and site nested within regions to dataset.
+#' Sites with less than 5 participants are combined into
+#' an "other" sites group within country.
+#' @param dat A dataset with `Country` and `Location` variables
+#' @return A dataset with ctry and site variables.
+#' @export
+add_country_site_groups <- function(dat) {
+  site_counts <- dat |>
+    count(
+      Country = droplevels(factor(Country, levels = c("IN", "AU", "NP", "NZ"))),
+      Location
+    )
+  merge_aus <- site_counts |>
+    filter(Country == "AU", n < 5) |>
+    pull(Location)
+  merge_nz <- site_counts |>
+    filter(Country == "NZ", n < 5) |>
+    pull(Location)
+  dat <- dat |>
+    mutate(
+      ctry2 = droplevels(factor(Country, levels = c("IN", "AU", "NP", "NZ"))),
+      # group sites with < 5 counts
+      site2 = fct_collapse(
+        factor(Location, levels = site_counts$Location),
+        `AU other` = merge_aus,
+        `NZ other` = merge_nz
+      )
+    )
+  region_site <- dat %>%
+    count(ctry2, site2) %>%
+    mutate(
+      ctry2_num = as.numeric(ctry2),
+      site2_num = as.numeric(fct_inorder(site2))
+    )
+  dat |>
+    left_join(
+      region_site |>
+        select(-n),
+      by = c("ctry2", "site2")
     )
 }
 
@@ -261,6 +306,7 @@ make_fas_itt_set <- function(dat) {
     filter_fas_itt() |>
     add_derived_covariates() |>
     add_region_site_groups() |>
+    add_country_site_groups() |>
     add_epoch_term() |>
     # Manually correct epoch data
     mutate(
@@ -292,6 +338,7 @@ make_acs_itt_set <- function(dat) {
     filter_acs_itt() |>
     add_derived_covariates() |>
     add_region_site_groups() |>
+    add_country_site_groups() |>
     add_epoch_term() |>
     # Manually correct epoch data
     mutate(
@@ -323,6 +370,7 @@ make_avs_itt_set <- function(dat) {
     filter_avs_itt() |>
     add_derived_covariates() |>
     add_region_site_groups() |>
+    add_country_site_groups() |>
     add_epoch_term() |>
     # Manually correct epoch data
     mutate(
