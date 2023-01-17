@@ -190,7 +190,7 @@ make_primary_model_data <- function(dat,
     count(.data[[ctry_var]], .data[[site_var]]) |>
     pull(.data[[ctry_var]])
   y_raw <- dat[[outcome]]
-  if(diff(range(y_raw)) == 1) {
+  if(diff(range(y_raw)) == 1 | outcome %in% c("PO", "D28_death")) {
     y_mod <- y_raw
   } else {
     y_raw <- ordered(y_raw)
@@ -245,6 +245,8 @@ fit_primary_model <- function(dat = NULL,
                               includeA = TRUE,
                               includeC = TRUE,
                               intercept = TRUE,
+                              ctry_var = "ctry_num",
+                              site_var = "site_num",
                               seed = 32915,
                               adapt_delta = 0.99,
                               iter_sampling = 2500,
@@ -261,6 +263,8 @@ fit_primary_model <- function(dat = NULL,
     includeA = includeA,
     includeC = includeC,
     intercept = intercept,
+    ctry_var = ctry_var,
+    site_var = site_var,
     ...
   )
   snk <- capture.output(
@@ -280,8 +284,13 @@ fit_primary_model <- function(dat = NULL,
   mdrws <- as_draws_rvars(mfit$draws(keep))
   names(mdrws$beta) <- colnames(mdat$X)
   if (any(grepl("site", keep))) {
-    site_map <- dat %>% dplyr::count(site_num, site)
-    names(mdrws$gamma_site) <- site_map$site
+    if (site_var == "site2_num") {
+      site_map <- dat %>% dplyr::count(.data[[site_var]], site2)
+      names(mdrws$gamma_site) <- site_map$site2
+    } else {
+      site_map <- dat %>% dplyr::count(.data[[site_var]], site)
+      names(mdrws$gamma_site) <- site_map$site
+    }
   }
   if (any(grepl("epoch", keep))) {
     epoch_map <- dat %>% dplyr::count(epoch, epoch_lab)
