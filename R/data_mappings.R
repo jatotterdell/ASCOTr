@@ -140,6 +140,20 @@ intervention_strata <- function() {
   )
 }
 
+#
+# site_country_map <- function() {
+#   tribble(
+#     ~ Country, ~ Location,
+#     "AU", "ALF",
+#     "AU", "BLK",
+#     "AU", "BXH",
+#     "AU", "CAM",
+#     "AU", "JHH",
+#     "AU", "LIV",
+#     "AU", "MMC",
+#   )
+# }
+#
 
 #' @title pp_lwmh_dose
 #' @description

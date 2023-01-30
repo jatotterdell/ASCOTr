@@ -734,7 +734,7 @@ generate_discharge_drugs <- function(dat) {
       DIS_NoAntiviral = DIS_ReceivedNone,
       DIS_CamostatReceived,
       DIS_FavipiravirReceived,
-      DIS_DoxycyclineReceived,
+      # DIS_DoxycyclineReceived,
       DIS_IvermectinReceived,
       DIS_RemdesivirReceived,
       DIS_OtherAntiviral = DIS_ReceivedOther,
@@ -787,7 +787,7 @@ generate_discharge_drugs_by <- function(dat, grpvar = NULL) {
       DIS_NoAntiviral = DIS_ReceivedNone,
       DIS_CamostatReceived,
       DIS_FavipiravirReceived,
-      DIS_DoxycyclineReceived,
+      # DIS_DoxycyclineReceived,
       DIS_IvermectinReceived,
       DIS_RemdesivirReceived,
       DIS_OtherAntiviral = DIS_ReceivedOther,
@@ -857,8 +857,8 @@ generate_discharge_drugs_table <- function(dat, format = "html") {
       font_size = fsize,
       latex_options = "HOLD_position"
     ) %>%
-    pack_rows("Antivirals", 2, 8) %>%
-    pack_rows("Immunomodulatory", 9, 19) %>%
+    pack_rows("Antivirals", 2, 7) %>%
+    pack_rows("Immunomodulatory", 8, 18) %>%
     row_spec(0, align = "c") %>%
     add_header_above(c(" " = 1, "Antiviral" = ncol(bygrpA) - 1, " " = 1))
   outC <- kable(
@@ -874,8 +874,8 @@ generate_discharge_drugs_table <- function(dat, format = "html") {
       font_size = fsize,
       latex_options = "HOLD_position"
     ) %>%
-    pack_rows("Antivirals", 2, 8) %>%
-    pack_rows("Immunomodulatory", 9, 19) %>%
+    pack_rows("Antivirals", 2, 7) %>%
+    pack_rows("Immunomodulatory", 8, 18) %>%
     row_spec(0, align = "c") %>%
     add_header_above(c(" " = 1, "Anticoagulation" = ncol(bygrpC) - 1, " " = 1))
   return(list(A = outA, C = outC))

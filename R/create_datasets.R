@@ -367,6 +367,12 @@ add_primary_outcome_components <- function(dat) {
         is.na(D28_Status) ~ NA_real_,
         TRUE ~ 0
       ),
+      # Note two participants have D28_vent as missing, but were known to be out of hospital
+      # Fix here
+      D28_vent = case_when(
+        StudyPatientID %in% c("ALF00006", "ALF00012") ~ 0,
+        TRUE ~ D28_vent
+      ),
       D28_vent2 = case_when(
         is.na(D28_OutcomeDaysFreeOfVentilation) ~ NA_real_,
         D28_OutcomeDaysFreeOfVentilation >= 28 ~ 0,
