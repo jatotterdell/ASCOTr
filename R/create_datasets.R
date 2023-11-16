@@ -939,6 +939,7 @@ create_fulldata_no_daily <- function() {
       WTH_rec = if_else(is.na(WTH_rec), 0, WTH_rec),
       DIS_rec = if_else(is.na(DIS_rec), 0, DIS_rec),
       D28_rec = if_else(is.na(D28_rec), 0, D28_rec),
+      D90_rec = if_else(is.na(D90_rec), 0, D90_rec),
       DD_total_records = if_else(is.na(DD_total_records), 0L, DD_total_records),
       WTH_FU = if_else(is.na(WTH_FU), 0L, WTH_FU),
       WTH_day = as.integer(CON_WithdrawnDate - RandDate + 1)
@@ -972,6 +973,7 @@ create_fulldata_add_daily <- function(dat) {
       WTH_rec = if_else(is.na(WTH_rec), 0, WTH_rec),
       DIS_rec = if_else(is.na(DIS_rec), 0, DIS_rec),
       D28_rec = if_else(is.na(D28_rec), 0, D28_rec),
+      D90_rec = if_else(is.na(D90_rec), 0, D90_rec),
       DD_rec = if_else(is.na(DD_rec), 0, DD_rec)
     )
 }

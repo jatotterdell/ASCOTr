@@ -270,6 +270,7 @@ read_d90_file <- function(fn) {
     na = c("", "NA", "n/a"),
     col_types = cols(
       D90_DateOfFollowUp = col_date(format = "%d-%b-%Y"),
+      D90_LastKnownDateAlive = col_date(format = "%d-%b-%Y"),
       PT_ProtocolVersion = col_character()
     )
   ) %>%

@@ -951,7 +951,30 @@ generate_table_1_data <- function(dat, grp = NULL) {
       `Country_New Zealand` = sprintf("%i (%.0f)", sum(Country == "NZ", na.rm = TRUE), 100 * sum(Country == "NZ", na.rm = TRUE) / n()),
       `Country_Nepal` = sprintf("%i (%.0f)", sum(Country == "NP", na.rm = TRUE), 100 * sum(Country == "NP", na.rm = TRUE) / n()),
       `Ethnicity_European` = sprintf("%i (%.0f)", sum(BAS_EthnicityEuropean == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityEuropean == "Yes", na.rm = TRUE) / n()),
-      `Ethnicity_Pacific peoples or Maori` = sprintf("%i (%.0f)", sum(BAS_EthnicityPacificIslander == "Yes" | BAS_EthnicityMaori == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityPacificIslander == "Yes" | BAS_EthnicityMaori == "Yes", na.rm = TRUE) / n()),
+      `Ethnicity_Pacific peoples or Maori` = sprintf(
+        "%i (%.0f)",
+        sum(
+          BAS_EthnicityPacificIslander == "Yes" |
+          BAS_EthnicityMaori == "Yes" |
+            BAS_EthnicityCookIslandMaori == "Yes" |
+            BAS_EthnicityFijian == "Yes" |
+            BAS_EthnicityNiuean == "Yes" |
+            BAS_EthnicitySamoan == "Yes" |
+            BAS_EthnicityTokelauan == "Yes" |
+            BAS_EthnicityTongan == "Yes" |
+            BAS_EthnicityPINotDefined == "Yes",
+          na.rm = TRUE),
+        100 * sum(
+          BAS_EthnicityPacificIslander == "Yes" |
+          BAS_EthnicityMaori == "Yes" |
+            BAS_EthnicityCookIslandMaori == "Yes" |
+            BAS_EthnicityFijian == "Yes" |
+            BAS_EthnicityNiuean == "Yes" |
+            BAS_EthnicitySamoan == "Yes" |
+            BAS_EthnicityTokelauan == "Yes" |
+            BAS_EthnicityTongan == "Yes" |
+            BAS_EthnicityPINotDefined == "Yes",
+          na.rm = TRUE) / n()),
       `Ethnicity_Middle Eastern` = sprintf("%i (%.0f)", sum(BAS_EthnicityMiddleEastern == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityMiddleEastern == "Yes", na.rm = TRUE) / n()),
       `Ethnicity_Asian` = sprintf("%i (%.0f)", sum(BAS_EthnicityAsian == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityAsian == "Yes", na.rm = TRUE) / n()),
       `Ethnicity_Aboriginal` = sprintf("%i (%.0f)", sum(BAS_EthnicityAboriginal == "Yes", na.rm = TRUE), 100 * sum(BAS_EthnicityAboriginal == "Yes", na.rm = TRUE) / n()),
